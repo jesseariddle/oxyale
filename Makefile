@@ -3,13 +3,13 @@
 
 CFLAGS=-pedantic -Wall -Wextra -g
 LDFLAGS=-shared -fPIC
-LDLIBS=-lopal
+LDLIBS=-lopenpalace
 TESTFLAGS=-Llib
 vpath %.c src
 vpath %.h src
 vpath %.o obj
 vpath %.so lib
-TARGET=libopal.so
+TARGET=libopenpalace.so
 TESTTARGET=test
 LIBDIR=lib
 #BINDIR=bin
@@ -22,12 +22,12 @@ TESTS=$(addprefix $(TESTDIR)/, regcodetest.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG -combine -fwhole_program
 
-all: libopal
+all: libopenpalace
 
-tests: libopal
+tests: libopenpalace
 	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) -o $(TESTTARGET)
 
-libopal: $(LIBDIR) $(OBJS)
+libopenpalace: $(LIBDIR) $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(TARGET)
 
 $(OBJS): $(OBJDIR)/%.o: %.c
