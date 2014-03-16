@@ -1,2 +1,3 @@
 libopenpalace
 =============
+OpenPalace in C
