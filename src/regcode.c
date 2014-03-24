@@ -66,8 +66,8 @@ static unsigned int CRC_MASK[] = {
 
 /* Test code: 9YAT-C8MM-GJVZL */
 
-static unsigned int
-ReverseUInt(unsigned int Number)
+static unsigned int 
+ReverseUInt(unsigned int Number) 
 {
     Number = (Number & 0xFFFF0000) >> 16 | (Number & 0x0000FFFF) << 16;
     Number = (Number & 0xFF000000) >> 8 | (Number & 0x00FF0000) << 8 |
@@ -75,8 +75,8 @@ ReverseUInt(unsigned int Number)
     return Number;
 }
 
-static unsigned int
-ComputeLicenseCRC(unsigned int Seed)
+static unsigned int 
+ComputeLicenseCRC(unsigned int Seed) 
 {
     unsigned int crc = CRC_MAGIC;
     /* reverse byte order of seed if platform is big endian */
@@ -133,9 +133,11 @@ ConvertASCIIToCode(unsigned char ASCIIValue)
     ASCIIValue = toupper(ASCIIValue);
     int code = -1;
     int i = OPAL_REGCODE_ASCII_LOOKUP_LEN - 1;
-    while (i--)
-	if (CODE_ASCII_LOOKUP[i] == ASCIIValue)
-	    code = CODE_ASCII_LOOKUP[i];
+    while (i--) {
+	if (CODE_ASCII_LOOKUP[i] == ASCIIValue) {
+	    code = i;
+        }
+    }
     return code;
 }
 
@@ -143,7 +145,9 @@ OPAL_Regcode *
 OPAL_MakeRegcodeFromString(char *RegcodeString, int Length)
 {
     int i;
-    for (i = Length; i--; ) { RegcodeString[i] = toupper(RegcodeString[i]); }
+    for (i = Length; i--; ) { 
+        RegcodeString[i] = toupper(RegcodeString[i]); 
+    }
     char *trimmedRegcodeString = MakeTrimmedRegcodeString(RegcodeString, Length);
     int numbits = 64;
     short sn = 0;

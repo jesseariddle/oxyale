@@ -12,7 +12,7 @@ vpath %.so lib
 TARGET=libopenpalace.so
 TESTTARGET=test
 LIBDIR=lib
-#BINDIR=bin
+BINDIR=bin
 OBJDIR=obj
 TESTDIR=src/test
 SRCDIR=src
@@ -27,22 +27,21 @@ all: libopenpalace
 tests: libopenpalace
 	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) -o $(TESTTARGET)
 
-libopenpalace: $(LIBDIR) $(OBJS)
+libopenpalace: $(OBJS)
+	mkdir -p $(LIBDIR)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(TARGET)
 
 $(OBJS): $(OBJDIR)/%.o: %.c
+	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(TESTS): $(TESTDIR)
 	$(CC) -c $(TESTDIR) $@
 
-$(OBJDIR):
-	mkdir $(OBJDIR)
-
 .PHONY: clean
 
 clean:
-	rm -f $(OBJDIR)/$(OBJS)
-	rm -f $(LIBDIR)/$(TARGET)
+	rm -rf $(OBJDIR)
+	rm -rf $(LIBDIR)
 	rm -f $(TESTTARGET)
 	rm -rf $(TESTTARGET).dSYM
