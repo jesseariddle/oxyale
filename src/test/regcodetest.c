@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include "../../src/regcode.h"
 
-int main()
+int main(void)
 {
-    OPAL_Regcode *Regcode = OPAL_MakeRegcode();
-    OPAL_PrintRegcode(Regcode);
-    OPAL_FreeRegcode(Regcode);
+    opalRegcode_t *regcode = OPAL_MakeRegcode();
+    opalRegcode_t *anotherRegcode = OPAL_MakeRegcodeFromString("9YAT-C8MM-GJVZL");
+    OPAL_PrintRegcode(regcode);
+    OPAL_PrintRegcode(anotherRegcode);
+    OPAL_FreeRegcode(regcode);
+    OPAL_FreeRegcode(anotherRegcode);
     return 0;
 }

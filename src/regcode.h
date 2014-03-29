@@ -4,14 +4,14 @@
 
 /* public interface */
 
-typedef struct OPAL_Regcode {
-    unsigned int counter;
-    unsigned int crc;
-} OPAL_Regcode;
+typedef struct {
+    int32_t counter;
+    int32_t crc;
+} opalRegcode_t;
 
-extern OPAL_Regcode *OPAL_MakeRegcode();
-extern OPAL_Regcode *OPAL_MakeRegcodeFromString(char *RegcodeString, int Length);
-extern void OPAL_PrintRegcode();
-extern void OPAL_FreeRegcode(OPAL_Regcode *Regcode);
+extern opalRegcode_t *OPAL_MakeRegcode( void );
+extern opalRegcode_t *OPAL_MakeRegcodeFromString( const char *s );
+extern void OPAL_PrintRegcode( const opalRegcode_t *regcode );
+extern void OPAL_FreeRegcode( opalRegcode_t *regcode );
 
 #endif /* _OPAL_REGCODE_H_ */
