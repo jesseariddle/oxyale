@@ -1,8 +1,6 @@
 #include "platform.h"
 #include "crypto.h"
 
-static const size_t LUT_LEN = 512;
-
 static uint32_t
 Random( opalCrypt_t *crypt )
 {
@@ -13,7 +11,7 @@ Random( opalCrypt_t *crypt )
     return a + ( 0 < a ) * 0x7FFFFFFF;
 }
 
-void
+static void
 SeedRandom( opalCrypt_t *crypt, const uint32_t s )
 {
     crypt->seed = s;
@@ -41,8 +39,8 @@ OPAL_MakeCrypt( )
     /* srand( 0xA2C2A ); */
     opalCrypt_t *crypt = malloc( sizeof (*crypt) );
     SeedRandom( crypt, 0 );
-    for (i = LUT_LEN; i--; ) {
-        crypt->lut[i] = ShortRandom( crypt, 256 ); /* TODO: magic number */
+    for ( i = OPAL_CRYPT_LUT_LEN; i--; ) {
+        crypt->lut[i] = ShortRandom( crypt, OPAL_CRYPT_LUT_MAX );
     }
 
     return crypt;
@@ -65,7 +63,6 @@ OPAL_Decrypt( const char *ciphertext, byte isInputUTF8 )
 {
     return NULL; /* TODO: stub */
 }
-
 
 void
 OPAL_FreePalaceCrypt( opalCrypt_t *crypt )
