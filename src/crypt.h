@@ -12,8 +12,8 @@ typedef struct {
 } opalCrypt_t;
 
 extern opalCrypt_t *OPAL_MakeCrypt( );
-extern byte *OPAL_MakeEncryptedMessage( const opalCrypt_t *crypt, const char *message, uint32_t byteLimit );
-extern byte *OPAL_MakeDecryptedMessage( const opalCrypt_t *crypt, const char *ciphertext );
+extern char *OPAL_MakeEncryptedMessage( const opalCrypt_t *crypt, const char *message, uint32_t byteLimit );
+extern char *OPAL_MakeDecryptedMessage( const opalCrypt_t *crypt, const char *ciphertext );
 extern void OPAL_FreeMessage( char *message );
 extern void OPAL_FreeCrypt( opalCrypt_t *crypt );
 

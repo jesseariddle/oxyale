@@ -46,29 +46,29 @@ OPAL_MakeCrypt( )
     return crypt;
 }
 
-byte *
+char *
 OPAL_MakeEncryptedMessage( const opalCrypt_t *crypt, const char *plaintext, const uint32_t byteLimit ) /* 254 */
 {
     size_t c = 0, i, z = strnlen( plaintext, byteLimit );
-    byte lastByte = '\0', *output = calloc( z + 1, sizeof (*output) );
+    char lastChar = '\0', *output = calloc( z + 1, sizeof (*output) );
 
     for ( i = z; i--; ) {
-        output[i] = ( byte )( plaintext[i] ^ crypt->lut[c++] ^ lastByte );
-        lastByte = ( byte )( output[i] ^ crypt->lut[c++] );
+        output[i] = ( char )( plaintext[i] ^ crypt->lut[c++] ^ lastChar );
+        lastChar = ( char )( output[i] ^ crypt->lut[c++] );
     }
 
     return output;
  }
 
-byte *
+char *
 OPAL_MakeDecryptedMessage( const opalCrypt_t *crypt, const char *ciphertext )
 {
     size_t c = 0, i, z = strlen( ciphertext );
-    byte lastByte = '\0', *output = calloc( z + 1, sizeof (*output) );
+    char lastChar = '\0', *output = calloc( z + 1, sizeof (*output) );
 
     for ( i = z; i--; ) {
-        output[i] = ( byte )( ciphertext[i] ^ crypt->lut[c++] ^ lastByte );
-        lastByte = ( byte )( ciphertext[i] ^ crypt->lut[c++] );
+        output[i] = ( char )( ciphertext[i] ^ crypt->lut[c++] ^ lastChar );
+        lastChar = ( char )( ciphertext[i] ^ crypt->lut[c++] );
     }
 
     return output;
