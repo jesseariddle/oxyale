@@ -103,25 +103,22 @@ MakeTrimmedRegcodeString( const char *s )
     /* get length of trimmed string */
     for ( i = z; i--; ) {
 	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-	    if ( s[i] == UPPER_CODE_TO_ASCII_LUT[j] || s[i] == LOWER_CODE_TO_ASCII_LUT[j] ) {
-		++k;
-	    }
+            k += (s[i] == UPPER_CODE_TO_ASCII_LUT[j] | s[i] == LOWER_CODE_TO_ASCII_LUT[j]);
 	}
-    } ++k; /* append for '\0' */
+    }
 
-    char *t = calloc( k, sizeof (*t) );
+    char *t = calloc( k + 1, sizeof (*t) );
     k = 0;
     for ( i = 0; i < z; ++i ) {
 	isValid = 0;
 	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-	    if ( s[i] == UPPER_CODE_TO_ASCII_LUT[j] || s[i] == LOWER_CODE_TO_ASCII_LUT[j] ) {
-		isValid = 1;
-	    }
+            /* this shouldn't overflow */
+	    isValid += (s[i] == UPPER_CODE_TO_ASCII_LUT[j] | s[i] == LOWER_CODE_TO_ASCII_LUT[j]);
 	}
 	if ( isValid ) {
 	    t[k++] = s[i];
 	}
-    } t[k] = '\0'; /* calloc should do this for us */
+    } t[k] = '\0'; /* calloc should do this for us, though */
 
     return t;
 }

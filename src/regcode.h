@@ -5,8 +5,8 @@
 /* public interface */
 
 typedef struct {
-    int32_t counter;
-    int32_t crc;
+    uint32_t counter;
+    uint32_t crc;
 } opalRegcode_t;
 
 extern opalRegcode_t *OPAL_MakeRegcode( void );

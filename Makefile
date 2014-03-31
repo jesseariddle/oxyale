@@ -17,8 +17,8 @@ OBJDIR=obj
 TESTDIR=src/test
 SRCDIR=src
 SRCS=$(wildcard $(SRCDIR)/*.c)
-OBJS=$(addprefix $(OBJDIR)/, platform.o regcode.o crypto.o)
-TESTS=$(addprefix $(TESTDIR)/, regcodetest.c)
+OBJS=$(addprefix $(OBJDIR)/, platform.o regcode.o crypt.o)
+TESTS=$(addprefix $(TESTDIR)/, crypttest.c) # regcodetest.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG -combine -fwhole_program
 
