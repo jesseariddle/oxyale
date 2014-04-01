@@ -154,7 +154,7 @@ OPAL_MakeRegcodeFromString( const char *s )
 	    oCnt = 5;
 	}
 	if ( sn & 0x10 ) {
-            sip[pos] = ( byte )(( sip[pos] | mask ) & 0xFF);
+            sip[pos] = ( byte )( sip[pos] | mask );
         }
 	sn <<= 1;
 	--oCnt;
@@ -167,8 +167,8 @@ OPAL_MakeRegcodeFromString( const char *s )
 
     regcode->crc = si[0];
     regcode->counter = si[1];
-    free( t );
 
+    free( t );
     return regcode;
 }
 

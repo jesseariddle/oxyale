@@ -1,14 +1,12 @@
 #pragma once
 #ifndef _OPAL_CYRPT_H_
 
-#include "platform.h"
-
 #define OPAL_CRYPT_LUT_LEN 512
 #define OPAL_CRYPT_LUT_MAX 256
 
 typedef struct {
     int32_t seed;
-    byte lut[OPAL_CRYPT_LUT_LEN];
+    unsigned char lut[OPAL_CRYPT_LUT_LEN];
 } opalCrypt_t;
 
 extern opalCrypt_t *OPAL_MakeCrypt( );
