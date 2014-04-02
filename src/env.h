@@ -1,5 +1,5 @@
 #pragma once
-#ifndef _OPAL_PLATFORM_H_
+#ifndef OPAL_ENV_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +34,7 @@
 
 typedef unsigned char byte;
 
-extern uint8_t OPAL_PlatformIsBigEndian( );
-extern uint32_t OPAL_SwapEndiannessOfUInt32( const uint32_t n );
+extern uint8_t OPAL_EnvIsBigEndian( );
+extern uint32_t OPAL_UInt32SwapEndian( const uint32_t n );
 
-#endif /* _OPAL_PLATFORM_H_ */
+#endif /* OPAL_ENV_H_ */

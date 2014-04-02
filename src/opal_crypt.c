@@ -1,5 +1,5 @@
-#include "platform.h"
-#include "crypt.h"
+#include "env.h"
+#include "opal_crypt.h"
 
 /* this PRNG stuff seems pretty janky, maybe we can do better later */
 

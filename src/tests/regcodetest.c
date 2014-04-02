@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../src/regcode.h"
+#include "../../src/env.h"
+#include "../../src/opal_regcode.h"
 
 int main( )
 {

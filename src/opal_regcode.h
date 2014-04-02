@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _OPAL_REGCODE_H_
-#define _OPAL_REGCODE_H_
+#ifndef OPAL_REGCODE_H_
+#define OPAL_REGCODE_H_
 
 /* public interface */
 
@@ -14,4 +14,4 @@ extern opalRegcode_t *OPAL_MakeRegcodeFromString( const char *s );
 extern void OPAL_PrintRegcode( const opalRegcode_t *regcode );
 extern void OPAL_FreeRegcode( opalRegcode_t *regcode );
 
-#endif /* _OPAL_REGCODE_H_ */
+#endif /* OPAL_REGCODE_H_ */

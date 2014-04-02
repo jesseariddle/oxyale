@@ -1,5 +1,5 @@
 #pragma once
-#ifndef _OPAL_CYRPT_H_
+#ifndef OPAL_CYRPT_H_
 
 #define OPAL_CRYPT_LUT_LEN 512
 #define OPAL_CRYPT_LUT_MAX 256
@@ -15,4 +15,4 @@ extern char *OPAL_MakeDecryptedMessage( const opalCrypt_t *crypt, const char *ci
 extern void OPAL_FreeMessage( char *message );
 extern void OPAL_FreeCrypt( opalCrypt_t *crypt );
 
-#endif /* _OPAL_CRYPT_H_ */
+#endif /* OPAL_CRYPT_H_ */

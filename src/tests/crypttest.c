@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../src/crypt.h"
+#include "../../src/env.h"
+#include "../../src/opal_crypt.h"
 
 int main( )
 {

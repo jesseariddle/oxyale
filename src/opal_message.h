@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _OPAL_MESSAGE_H_
-#define _OPAL_MESSAGE_H_
+#ifndef OPAL_MESSAGE_H_
+#define OPAL_MESSAGE_H_
 
 /* public interface */
 
@@ -148,4 +148,4 @@ enum {
 #define            OPAL_MSG_OUT_AUTHRESPONSE 0x61757472
 #define                    OPAL_MSG_OUT_DRAW 0x64726177
 
-#endif /* _OPAL_MESSAGE_H_ */
+#endif /* OPAL_MESSAGE_H_ */

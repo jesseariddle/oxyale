@@ -1,5 +1,5 @@
-#include "platform.h"
-#include "regcode.h"
+#include "env.h"
+#include "opal_regcode.h"
 
 static const size_t OPAL_REGCODE_TO_ASCII_LUT_LEN = 32;
 /* static const size_t OPAL_REGCODE_STRING_LEN = 13; */
@@ -53,7 +53,7 @@ static const uint32_t CRC_MASK[] = {
     0xF30624BB, 0xB7427258, 0xC78E19BF, 0xD1EE98A6, 0x66BE7D3A, 0x791E342F,
     0x68CBAAB0, 0xBBB5355D, 0x8DDA9081, 0xDC2736DC, 0x573355AD, 0xC3FFEC65,
     0xE97F0270, 0xC6A265E8, 0xD9D49152, 0x4BB35BDB, 0xA1C7BBE6, 0x15A3699A,
-    0xE69E1EB5, 0x7CDDA410, 0x488609DF, 0xD19678D3 
+    0xE69E1EB5, 0x7CDDA410, 0x488609DF, 0xD19678D3
 };
 
 /* Test code: 9YAT-C8MM-GJVZL */
@@ -64,8 +64,8 @@ ComputeLicenseCRC( const uint32_t seed )
     uint32_t s, crc = CRC_MAGIC;
 
     /* reverse byte order of seed if platform is big endian */
-    if ( OPAL_PlatformIsBigEndian() ) {
-	s = OPAL_SwapEndiannessOfUInt32( seed );
+    if ( OPAL_EnvIsBigEndian() ) {
+	s = OPAL_UInt32SwapEndian( seed );
     } else {
         s = seed;
     }
