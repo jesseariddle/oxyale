@@ -4,15 +4,21 @@
 
 /* public interface */
 
+#define OPAL_ROOM_HEADER_LEN 48
+#define OPAL_ROOM_PREFIX_LEN 8
+
 typedef struct {
-    int32_t refId;
-    int32_t errCode;
+    int32_t referenceId;
+    int32_t errorCode;
 } opalNavErrMsg_t;
 
 extern void OPAL_ReadNavErrMsg( opalNavErrMsg_t *msg, byte *data, int32_t refId );
 
 
 typedef struct {
+    int32_t messageId;;
+    int32_t referenceId;
+
     int32_t roomFlags;
     int32_t face;
     int16_t roomId;
@@ -31,15 +37,13 @@ typedef struct {
     int16_t firstLoosePropOffset;
     int16_t reserved;
     int16_t roomDataLength;
-
-    int32_t roomName;
-    int32_t backgroundImageName;
-    int32_t msgId;
-    int32_t refId;
+    int8_t  *roomBytes;
+    char *roomName;
+    char *backgroundImageName;
 } opalRoomDescMsg_t;
 
-extern void OPAL_ReadRoomDescMsg( opalRoomDescMsg_t *msg, byte *data, int32_t refId );
-
+extern opalRoomDescriptor OPAL_MakeRoomDescriptor( byte *data, int32_t refId );
+extern void OPAL_FreeRoomDescriptor( );
 
 /* nav messages */
 
