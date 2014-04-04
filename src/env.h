@@ -1,5 +1,6 @@
 #pragma once
 #ifndef OPAL_ENV_H_
+#define OPAL_ENV_H_
 
 #include <stdio.h>
 #include <stdlib.h>

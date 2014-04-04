@@ -9,7 +9,7 @@ typedef struct {
     int32_t errCode;
 } opalNavErrMsg_t;
 
-void OPAL_ReadNavErrMsg( opalNavErrMsg_t *msg, byte *data, int32_t refId );
+extern void OPAL_ReadNavErrMsg( opalNavErrMsg_t *msg, byte *data, int32_t refId );
 
 
 typedef struct {
@@ -38,7 +38,7 @@ typedef struct {
     int32_t refId;
 } opalRoomDescMsg_t;
 
-void OPAL_ReadRoomDescMsg( opalRoomDescMsg_t *msg, byte *data, int32_t refId );
+extern void OPAL_ReadRoomDescMsg( opalRoomDescMsg_t *msg, byte *data, int32_t refId );
 
 
 /* nav messages */

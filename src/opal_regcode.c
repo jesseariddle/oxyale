@@ -1,16 +1,16 @@
 #include "env.h"
 #include "opal_regcode.h"
 
-static const size_t OPAL_REGCODE_TO_ASCII_LUT_LEN = 32;
+#define OPAL_REGCODE_TO_ASCII_LUT_LEN 32
 /* static const size_t OPAL_REGCODE_STRING_LEN = 13; */
 
-static const char LOWER_CODE_TO_ASCII_LUT[] = "abcdefghjklmnpqrstuvwxyz23456789";
-static const char UPPER_CODE_TO_ASCII_LUT[] = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+#define OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT "abcdefghjklmnpqrstuvwxyz23456789"
+#define OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
-static const uint32_t CRC_MAGIC = 0xA95ADE76;
-static const uint32_t MAGIC_LONG = 0x9602C9BF;
+#define OPAL_REGCODE_CRC_MAGIC 0xA95ADE76
+#define OPAL_REGCODE_MAGIC_LONG 0x9602C9BF
 
-static const uint32_t CRC_MASK[] = {
+static const uint32_t OPAL_REGCODE_CRC_MASK[] = {
     0xEBE19B94, 0x7604DE74, 0xE3F9D651, 0x604FD612, 0xE8897C2C, 0xADC40920,
     0x37ECDFB7, 0x334989ED, 0x2834C33B, 0x8BD2FE15, 0xCBF001A7, 0xBD96B9D6,
     0x315E2CE0, 0x4F167884, 0xA489B1B6, 0xA51C7A62, 0x54622636, 0x0BC016FC,
@@ -61,7 +61,7 @@ static const uint32_t CRC_MASK[] = {
 static uint32_t
 ComputeLicenseCRC( const uint32_t seed )
 {
-    uint32_t s, crc = CRC_MAGIC;
+    uint32_t s, crc = OPAL_REGCODE_CRC_MAGIC;
 
     /* reverse byte order of seed if platform is big endian */
     if ( OPAL_EnvIsBigEndian() ) {
@@ -71,7 +71,7 @@ ComputeLicenseCRC( const uint32_t seed )
     }
 
     do {
-	crc = ( (crc << 1) | (((crc & 0x80000000) == 0) ? 0 : 1) ) ^ CRC_MASK[s & 0xFF];
+	crc = ( (crc << 1) | (((crc & 0x80000000) == 0) ? 0 : 1) ) ^ OPAL_REGCODE_CRC_MASK[s & 0xFF];
     } while ( s >>= 8 );
 
     return crc;
@@ -80,7 +80,7 @@ ComputeLicenseCRC( const uint32_t seed )
 static uint32_t
 ComputeLicenseCounter( const uint32_t seed, const uint32_t crc )
 {
-    return ( seed ^ MAGIC_LONG ) ^ crc;
+    return ( seed ^ OPAL_REGCODE_MAGIC_LONG ) ^ crc;
 }
 
 opalRegcode_t *
@@ -103,7 +103,7 @@ MakeTrimmedRegcodeString( const char *s )
     /* get length of trimmed string */
     for ( i = z; i--; ) {
 	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-            k += (s[i] == UPPER_CODE_TO_ASCII_LUT[j] | s[i] == LOWER_CODE_TO_ASCII_LUT[j]);
+            k += (s[i] == OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | s[i] == OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[j]);
 	}
     }
 
@@ -113,7 +113,7 @@ MakeTrimmedRegcodeString( const char *s )
 	isValid = 0;
 	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
             /* this shouldn't overflow */
-	    isValid += (s[i] == UPPER_CODE_TO_ASCII_LUT[j] | s[i] == LOWER_CODE_TO_ASCII_LUT[j]);
+	    isValid += (s[i] == OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | s[i] == OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[j]);
 	}
 	if ( isValid ) {
 	    t[k++] = s[i];
@@ -130,7 +130,7 @@ ConvertASCIIToCode( const char asciiValue )
     size_t i;
 
     for ( i = OPAL_REGCODE_TO_ASCII_LUT_LEN; i--; ) {
-	if ( UPPER_CODE_TO_ASCII_LUT[i] == asciiValue || LOWER_CODE_TO_ASCII_LUT[i] == asciiValue ) {
+	if ( OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[i] == asciiValue || OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[i] == asciiValue ) {
 	    code = i;
         }
     }

@@ -1,5 +1,6 @@
 #pragma once
 #ifndef OPAL_CYRPT_H_
+#define OPAL_CRYPT_H_
 
 #define OPAL_CRYPT_LUT_LEN 512
 #define OPAL_CRYPT_LUT_MAX 256
