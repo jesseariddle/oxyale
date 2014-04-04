@@ -2,9 +2,26 @@
 #include "opal_string.h"
 #include "opal_message.h"
 
-void OPAL_MakeRoomDescriptor( byte *data, int32_t refId )
+opalNavErrorDescriptor_t *
+OPAL_MakeNavErrorDescriptor( byte *data, int32_t refId )
 {
-    opalRoomDescriptor *rd;
+    opalNavErrorDescriptor_t *ned = malloc( sizeof (*ned) );
+    ned->referenceId = refId;
+    ned->errorCode = *data;
+
+    return ned;
+}
+
+void
+OPAL_FreeNavErrorDescriptor( opalNavErrorDescriptor_t *ned )
+{
+    free( ned );
+}
+
+opalRoomDescriptor_t *
+OPAL_MakeRoomDescriptor( byte *data, int32_t refId )
+{
+    opalRoomDescriptor_t *rd;
 
     /* allocate memory for descriptor */
     rd = malloc( sizeof (*rd) );
@@ -35,9 +52,12 @@ void OPAL_MakeRoomDescriptor( byte *data, int32_t refId )
 
     /* copy background image name */
     memcpy( rd->backgroundImageName, data + OPAL_ROOM_HEADER_LEN + rd->imageNameOffset + sizeof (bgImageNameLen), bgImageNameLen );
+
+    return rd;
 }
 
-void OPAL_FreeRoomDescriptor( opalRoomDescriptor_t *rd )
+void 
+OPAL_FreeRoomDescriptor( opalRoomDescriptor_t *rd )
 {
     free( rd->backgroundImageName );
     free( rd->roomName );

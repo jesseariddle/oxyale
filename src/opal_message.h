@@ -9,14 +9,14 @@
 
 typedef struct {
     int32_t referenceId;
-    int32_t errorCode;
-} opalNavErrMsg_t;
+    int8_t errorCode;
+} opalNavErrorDescriptor_t;
 
-extern void OPAL_ReadNavErrMsg( opalNavErrMsg_t *msg, byte *data, int32_t refId );
-
+extern opalNavErrorDescriptor_t *OPAL_MakeNavErrorDescriptor( byte *data, int32_t refId );
+extern void OPAL_FreeNavErrorDescriptor( opalNavErrorDescriptor_t *ned );
 
 typedef struct {
-    int32_t messageId;;
+    int32_t messageId;
     int32_t referenceId;
 
     int32_t roomFlags;
@@ -40,9 +40,9 @@ typedef struct {
     int8_t  *roomBytes;
     char *roomName;
     char *backgroundImageName;
-} opalRoomDescMsg_t;
+} opalRoomDescriptor_t;
 
-extern opalRoomDescriptor OPAL_MakeRoomDescriptor( byte *data, int32_t refId );
+extern opalRoomDescriptor_t *OPAL_MakeRoomDescriptor( byte *data, int32_t refId );
 extern void OPAL_FreeRoomDescriptor( );
 
 /* nav messages */
