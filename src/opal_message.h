@@ -13,26 +13,29 @@ void OPAL_ReadNavErrMsg( opalNavErrMsg_t *msg, byte *data, int32_t refId );
 
 
 typedef struct {
-    int32_t msgId;
-    int32_t refId;
     int32_t roomFlags;
-    int32_t roomId;
-    int32_t roomNameOffset;
-    int32_t imageNameOffset;
-    int32_t artistNameOffset;
-    int32_t passwordOffset;
-    int32_t hotSpotCount;
-    int32_t hotSpotOffset;
-    int32_t imageCount;
-    int32_t imageOffset;
-    int32_t drawCommandsCount;
-    int32_t firstDrawCommandOffset;
-    int32_t peopleCount;
-    int32_t loosePropCount;
-    int32_t firstLoosePropOffset;
-    int32_t roomDataLength;
+    int32_t face;
+    int16_t roomId;
+    int16_t roomNameOffset;
+    int16_t imageNameOffset;
+    int16_t artistNameOffset;
+    int16_t passwordOffset;
+    int16_t hotSpotCount;
+    int16_t hotSpotOffset;
+    int16_t imageCount;
+    int16_t imageOffset;
+    int16_t drawCommandsCount;
+    int16_t firstDrawCommandOffset;
+    int16_t peopleCount;
+    int16_t loosePropCount;
+    int16_t firstLoosePropOffset;
+    int16_t reserved;
+    int16_t roomDataLength;
+
     int32_t roomName;
     int32_t backgroundImageName;
+    int32_t msgId;
+    int32_t refId;
 } opalRoomDescMsg_t;
 
 void OPAL_ReadRoomDescMsg( opalRoomDescMsg_t *msg, byte *data, int32_t refId );
@@ -51,12 +54,12 @@ enum {
 
 /* can't seem to decide on enum or defines */
 
-#define      OPAL_MSG_NAV_ERR_INTERNAL_ERROR 0x00000000
+#define          OPAL_MSG_NAV_INTERNAL_ERROR 0x00000000
 #define            OPAL_MSG_NAV_ROOM_UNKNOWN 0x00000001
 #define               OPAL_MSG_NAV_ROOM_FULL 0x00000002
-#define         OPAL_MSG_NAV_ERR_ROOM_CLOSED 0x00000003
-#define         OPAL_MSG_NAV_ERR_CANT_AUTHOR 0x00000004
-#define         OPAL_MSG_NAV_ERR_PALACE_FULL 0x00000005
+#define             OPAL_MSG_NAV_ROOM_CLOSED 0x00000003
+#define             OPAL_MSG_NAV_CANT_AUTHOR 0x00000004
+#define             OPAL_MSG_NAV_PALACE_FULL 0x00000005
 
 /* incoming messages */
 

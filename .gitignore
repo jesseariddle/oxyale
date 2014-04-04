@@ -1,5 +1,5 @@
 .DS_Store
-test
+run-tests
 obj
 lib
 *.dSYM

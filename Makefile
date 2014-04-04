@@ -10,15 +10,15 @@ vpath %.h src
 vpath %.o obj
 vpath %.so lib
 TARGET=libopenpalace.so
-TESTTARGET=test
+TESTTARGET=run-tests
 LIBDIR=lib
 BINDIR=bin
 OBJDIR=obj
-TESTDIR=src/test
+TESTDIR=src/tests
 SRCDIR=src
 SRCS=$(wildcard $(SRCDIR)/*.c)
-OBJS=$(addprefix $(OBJDIR)/, env.o opal_regcode.o opal_crypt.o opal_message.o)
-TESTS=$(addprefix $(TESTDIR)/, crypttest.c) # regcodetest.c)
+OBJS=$(addprefix $(OBJDIR)/, env.o opal_regcode.o opal_crypt.o opal_string.o opal_message.o)
+TESTS=$(addprefix $(TESTDIR)/, tests.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG -combine -fwhole_program
 

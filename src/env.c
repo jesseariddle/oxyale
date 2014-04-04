@@ -1,4 +1,5 @@
 #include "env.h"
+#include "opal_string.h"
 
 uint8_t
 OPAL_EnvIsBigEndian( )
