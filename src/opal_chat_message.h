@@ -3,6 +3,10 @@
 #define OPAL_CHAT_MESSAGE_H_
 
 typedef struct {
+    
+} opalChatBubble_t;
+
+typedef struct {
     char *text;
     int8_t isWhisper;
     int32_t x;
@@ -14,7 +18,6 @@ typedef struct {
     uint8_t isStickyBubble;
 } opalChatMessage_t;
 
-opalChatMessage_t *OPAL_MakeChatMessage( byte *data );
-void OPAL_FreeChatMessage( opalChatMessage_t *chatMessage );
+void OPAL_MakeChatMessage( opalChatMessage_t *chatMessage, byte *data );
 
 #endif /* OPAL_CHAT_MESSAGE_H_ */
