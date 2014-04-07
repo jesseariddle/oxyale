@@ -1,16 +1,16 @@
 #include "env.h"
-#include "opal_regcode.h"
+#include "ox_regcode.h"
 
-#define OPAL_REGCODE_TO_ASCII_LUT_LEN 32
-/* static const size_t OPAL_REGCODE_STRING_LEN = 13; */
+#define OX_REGCODE_TO_ASCII_LUT_LEN 32
+#define OX_REGCODE_STR_LEN 13
 
-#define OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT "abcdefghjklmnpqrstuvwxyz23456789"
-#define OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+#define OX_REGCODE_LOWER_CODE_TO_ASCII_LUT "abcdefghjklmnpqrstuvwxyz23456789"
+#define OX_REGCODE_UPPER_CODE_TO_ASCII_LUT "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
-#define OPAL_REGCODE_CRC_MAGIC 0xA95ADE76
-#define OPAL_REGCODE_MAGIC_LONG 0x9602C9BF
+#define OX_REGCODE_CRC_MAGIC 0xA95ADE76
+#define OX_REGCODE_MAGIC_LONG 0x9602C9BF
 
-static const uint32_t OPAL_REGCODE_CRC_MASK[] = {
+static const uint32_t OX_REGCODE_CRC_MASK[] = {
     0xEBE19B94, 0x7604DE74, 0xE3F9D651, 0x604FD612, 0xE8897C2C, 0xADC40920,
     0x37ECDFB7, 0x334989ED, 0x2834C33B, 0x8BD2FE15, 0xCBF001A7, 0xBD96B9D6,
     0x315E2CE0, 0x4F167884, 0xA489B1B6, 0xA51C7A62, 0x54622636, 0x0BC016FC,
@@ -58,129 +58,92 @@ static const uint32_t OPAL_REGCODE_CRC_MASK[] = {
 
 /* Test code: 9YAT-C8MM-GJVZL */
 
-static uint32_t
-ComputeLicenseCRC( const uint32_t seed )
+static inline uint32_t compute_license_crc( const uint32_t seed )
 {
-    uint32_t s, crc = OPAL_REGCODE_CRC_MAGIC;
-
-    /* reverse byte order of seed if platform is big endian */
-    if ( OPAL_EnvIsBigEndian() ) {
-	s = OPAL_UInt32SwapEndian( seed );
-    } else {
+    uint32_t s, crc = OX_REGCODE_CRC_MAGIC;
+    if ( ox_env_is_big_endian() )
+	s = ox_uint32_swap_endian( seed );
+    else
         s = seed;
-    }
-
     do {
-	crc = ( (crc << 1) | (((crc & 0x80000000) == 0) ? 0 : 1) ) ^ OPAL_REGCODE_CRC_MASK[s & 0xFF];
+	crc = ( ( crc << 1 ) | ( ( ( crc & 0x80000000 ) == 0 ) ? 0 : 1 ) ) ^ OX_REGCODE_CRC_MASK[s & 0xff];
     } while ( s >>= 8 );
-
     return crc;
 }
 
-static uint32_t
-ComputeLicenseCounter( const uint32_t seed, const uint32_t crc )
+static inline uint32_t compute_license_counter( const uint32_t seed, const uint32_t crc )
 {
-    return ( seed ^ OPAL_REGCODE_MAGIC_LONG ) ^ crc;
+    return ( seed ^ OX_REGCODE_MAGIC_LONG ) ^ crc;
 }
 
-opalRegcode_t *
-OPAL_MakeRegcode( )
+void ox_regcode_generate( ox_regcode_t *regcode )
 {
-    opalRegcode_t *regcode = malloc( sizeof (*regcode) );
     uint32_t seed = ( uint32_t )time( NULL );
-    uint32_t crc = ComputeLicenseCRC( seed );
+    uint32_t crc = compute_license_crc( seed );
     regcode->crc = crc;
-    regcode->counter = ComputeLicenseCounter( seed, crc );
-    return regcode;
+    regcode->counter = compute_license_counter( seed, crc );
 }
 
-static char *
-MakeTrimmedRegcodeString( const char *s )
+int32_t ox_regcode_str_trim_len( const char *str )
 {
-    byte isValid;
-    size_t i, j, k = 0, z = strlen( s );
-
-    /* get length of trimmed string */
-    for ( i = z; i--; ) {
-	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-            k += (s[i] == OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | s[i] == OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[j]);
-	}
-    }
-
-    char *t = calloc( k + 1, sizeof (*t) );
-    k = 0;
-    for ( i = 0; i < z; ++i ) {
-	isValid = 0;
-	for ( j = OPAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-            /* this shouldn't overflow */
-	    isValid += (s[i] == OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | s[i] == OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[j]);
-	}
-	if ( isValid ) {
-	    t[k++] = s[i];
-	}
-    } t[k] = '\0'; /* calloc should do this for us, though */
-
-    return t;
+    int i, j, k = 0, z = strnlen( str, OX_REGCODE_STR_LEN );
+    for ( i = z; i--; )
+	for ( j = OX_REGCODE_TO_ASCII_LUT_LEN; j--; )
+            k += ( str[i] == OX_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | str[i] == OX_REGCODE_LOWER_CODE_TO_ASCII_LUT[j] );
+    return k;
 }
 
-static uint32_t
-ConvertASCIIToCode( const char asciiValue )
+void ox_regcode_str_trim( char *trimmed_regcode_str, const char *str )
+{
+    size_t i, j, k = 0, z = strnlen( str, OX_REGCODE_STR_LEN );
+    int8_t is_valid;
+    for ( i = 0; i < z; ++i ) {
+	is_valid = 0;
+	for ( j = OX_REGCODE_TO_ASCII_LUT_LEN; j--; )
+	    is_valid += ( str[i] == OX_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | str[i] == OX_REGCODE_LOWER_CODE_TO_ASCII_LUT[j] );
+	if ( is_valid )
+	    trimmed_regcode_str[k++] = str[i];
+    } trimmed_regcode_str[k] = '\0';
+}
+
+static inline uint32_t convert_ascii_to_code( const char ch )
 {
     uint32_t code = -1;
     size_t i;
-
-    for ( i = OPAL_REGCODE_TO_ASCII_LUT_LEN; i--; ) {
-	if ( OPAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[i] == asciiValue || OPAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[i] == asciiValue ) {
+    for ( i = OX_REGCODE_TO_ASCII_LUT_LEN; i--; )
+	if ( OX_REGCODE_UPPER_CODE_TO_ASCII_LUT[i] == ch || OX_REGCODE_LOWER_CODE_TO_ASCII_LUT[i] == ch )
 	    code = i;
-        }
-    }
-
     return code;
 }
 
-opalRegcode_t *
-OPAL_MakeRegcodeFromString( const char *s )
+void ox_regcode_from_str( ox_regcode_t *regcode, const char *trimmed_regcode_str )
 {
-    size_t pos = 0, oCnt = 0, nbrBits = 64, charIndex = 0;
-    char *t = MakeTrimmedRegcodeString( s );
+    size_t pos = 0, ocnt = 0, nbits = 64, i = 0;
     int16_t sn = 0, mask = 0x0080;
     int32_t si[2];
     byte *sip = ( byte * )&si;
-    opalRegcode_t *regcode = malloc( sizeof (*regcode) );
-
-    while ( nbrBits-- ) {
-	if ( oCnt == 0 ) {
-	    sn = ConvertASCIIToCode( t[charIndex++] );
-	    oCnt = 5;
+    const char *t = trimmed_regcode_str;
+    while ( nbits-- ) {
+	if ( ocnt == 0 ) {
+	    sn = convert_ascii_to_code( t[i++] );
+	    ocnt = 5;
 	}
-	if ( sn & 0x10 ) {
+	if ( sn & 0x10 )
             sip[pos] = ( byte )( sip[pos] | mask );
-        }
 	sn <<= 1;
-	--oCnt;
+	--ocnt;
 	mask >>= 1;
 	if ( mask == 0 ) {
 	    mask = 0x80;
 	    sip[++pos] = 0;
 	}
     }
-
     regcode->crc = si[0];
     regcode->counter = si[1];
-
-    free( t );
-    return regcode;
 }
 
-void
-OPAL_PrintRegcode( const opalRegcode_t *regcode )
+void ox_regcode_print( const ox_regcode_t *regcode )
 {
     fprintf( stderr, "regcode->counter: %u\n", regcode->counter );
     fprintf( stderr, "regcode->crc: %u\n", regcode->crc );
-}
-
-void
-OPAL_FreeRegcode( opalRegcode_t *regcode )
-{
-    free( regcode );
 }

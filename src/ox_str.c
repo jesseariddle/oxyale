@@ -1,8 +1,7 @@
 #include "env.h"
-#include "opal_string.h"
+#include "ox_str.h"
 
-static uint8_t
-URIShouldEscape( char *c )
+static uint8_t ox_str_should_escape( char *c )
 {
     if ( *c & 0x80 )
         return 0;    /* ignore multibyte chars */
@@ -17,8 +16,7 @@ URIShouldEscape( char *c )
         return 0;
 }
 
-static uint32_t
-URIShouldEscapeWithChar( char *c )
+static uint32_t ox_str_escape_with_char( char *c )
 {
     if ( *c & 0x80 )
         return 0;    /* ignore multibyte chars */
@@ -33,28 +31,22 @@ URIShouldEscapeWithChar( char *c )
         return 0;
 }
 
-char *
-OPAL_MakeEscapedURIString( char *unescaped_s )
+int32_t ox_str_uri_escape_len( char *unescaped_str )
 {
-    int32_t c, i, x, y = 0, z = strlen( unescaped_s );
-
+    int32_t c, i, y = 0, z = strnlen( unescaped_str, MAX_STR_LEN );
     for ( i = z; i--; ) {
-        c = URIShouldEscape( &unescaped_s[i] );        
+        c = ox_str_should_escape( &unescaped_str[i] );
         y += ( c << 1 ) + c;
     }
-
-    char *escaped_s = calloc( y + 1, sizeof (*escaped_s) );
-    for ( i = 0; i < z; ++i ) {
-        x = URIShouldEscapeWithChar( &unescaped_s[i] );
-        if ( x )
-            snprintf( escaped_s + i, 3, "%%%02x", x );
-    }
-
-    return escaped_s;
+    return y;
 }
 
-void
-OPAL_FreeEscapedURIString( char *escaped_s )
+void ox_str_uri_escape( char *escaped_str, char *unescaped_str )
 {
-    free( escaped_s );
+    int32_t c, i, x, z = strlen( unescaped_str );
+    for ( i = 0; i < z; ++i ) {
+        x = ox_str_should_escape( &unescaped_str[i] );
+        if ( x )
+            snprintf( escaped_str + i, 3, "%%%02x", x );
+    }
 }

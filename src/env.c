@@ -1,8 +1,6 @@
 #include "env.h"
-#include "opal_string.h"
 
-uint8_t
-OPAL_EnvIsBigEndian( )
+uint8_t ox_env_is_big_endian( )
 {
     union {
         uint32_t ui32;
@@ -12,8 +10,7 @@ OPAL_EnvIsBigEndian( )
     return bint.ui8[0] == 1;
 }
 
-uint32_t
-OPAL_UInt32SwapEndian( const uint32_t n )
+uint32_t ox_uint32_swap_endian( const uint32_t n )
 {
     uint32_t uint32 = n;
     uint32 = (uint32 & 0xFFFF0000) >> 16 | (uint32 & 0x0000FFFF) << 16;

@@ -3,13 +3,13 @@
 
 CFLAGS=-pedantic -Wall -Wextra -g
 LDFLAGS=-shared -fPIC
-LDLIBS=-lopenpalace
+LDLIBS=-loxyale
 TESTFLAGS=-Llib
 vpath %.c src
 vpath %.h src
 vpath %.o obj
 vpath %.so lib
-TARGET=libopenpalace.so
+TARGET=liboxyale.so
 TESTTARGET=run-tests
 LIBDIR=lib
 BINDIR=bin
@@ -17,17 +17,17 @@ OBJDIR=obj
 TESTDIR=src/tests
 SRCDIR=src
 SRCS=$(wildcard $(SRCDIR)/*.c)
-OBJS=$(addprefix $(OBJDIR)/, env.o opal_regcode.o opal_crypt.o opal_string.o opal_message.o)
+OBJS=$(addprefix $(OBJDIR)/, env.o ox_regcode.o ox_crypt.o ox_str.o ox_msg.o)
 TESTS=$(addprefix $(TESTDIR)/, tests.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG -combine -fwhole_program
 
-all: libopenpalace
+all: liboxyale
 
-tests: libopenpalace
+tests: liboxyale
 	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) -o $(TESTTARGET)
 
-libopenpalace: $(OBJS)
+liboxyale: $(OBJS)
 	mkdir -p $(LIBDIR)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(TARGET)
 
