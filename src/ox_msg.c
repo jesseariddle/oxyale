@@ -1,6 +1,6 @@
-#include "env.h"
-#include "ox_str.h"
-#include "ox_msg.h"
+#include "../include/env.h"
+#include "../include/ox_str.h"
+#include "../include/ox_msg.h"
 
 void ox_nav_err_init( ox_nav_err_t *nav_err, const byte *data, const int32_t ref_id )
 {

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "../../src/env.h"
-#include "../../src/ox_crypt.h"
-#include "../../src/ox_regcode.h"
-#include "../../src/ox_msg.h"
+#include "../../include/env.h"
+#include "../../include/ox_crypt.h"
+#include "../../include/ox_regcode.h"
+#include "../../include/ox_msg.h"
 
 void crypto_test()
 {
@@ -12,29 +12,28 @@ void crypto_test()
 
     printf( "Crypto test -----\n" );
     gettimeofday( &start, NULL );
-    
+
     char original_text[] = "Hello, world!";
 
     /* ox_crypt_t *ox_crypt = malloc( sizeof (*ox_crypt) ); */
     ox_crypt_t *ox_crypt = alloca( sizeof (*ox_crypt) );
     ox_crypt_init( ox_crypt );
 
-    /* char *cipher_text = calloc( strnlen( original_text, 254 ) + 1, sizeof (*cipher_text) ); */
-    char *cipher_text = alloca( strnlen( original_text, 254 ) + 1 );
-    ox_encrypt( cipher_text, ox_crypt, original_text );
+    /* char *ciphertext = calloc( strnlen( original_text, 254 ) + 1, sizeof (*ciphertext) ); */
+    char *ciphertext = alloca( strnlen( original_text, CHAR_BIT * sizeof (uint8_t) ) );
+    ox_encrypt( ciphertext, ox_crypt, original_text );
 
-    /* char *plain_text = calloc( strlen( cipher_text ) + 1, sizeof (*plain_text) ); */
-    char *plain_text = alloca( strnlen( cipher_text, 254 ) + 1 );
-    ox_decrypt( plain_text, ox_crypt, cipher_text );
+    char *plaintext = alloca( strnlen( ciphertext, CHAR_BIT * sizeof (uint8_t) ) );
+    ox_decrypt( plaintext, ox_crypt, ciphertext );
 
-    /* free( cipher_text ); */
+    /* free( ciphertext ); */
     /* free( plain_text ); */
     /* free( ox_crypt ); */
 
     gettimeofday( &stop, NULL );
     printf("original_text: %s\n", original_text);
-    printf("cipher_text: %s\n", cipher_text);
-    printf("plain_text: %s\n", plain_text);
+    printf("ciphertext: %s\n", ciphertext);
+    printf("plaintext: %s\n", plaintext);
     printf( "time spent: %d µs\n\n", stop.tv_usec - start.tv_usec );
 }
 

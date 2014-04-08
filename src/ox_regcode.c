@@ -1,5 +1,5 @@
-#include "env.h"
-#include "ox_regcode.h"
+#include "../include/env.h"
+#include "../include/ox_regcode.h"
 
 #define OX_REGCODE_TO_ASCII_LUT_LEN 32
 #define OX_REGCODE_STR_LEN 13
@@ -86,7 +86,7 @@ void ox_regcode_generate( ox_regcode_t *regcode )
 
 int32_t ox_regcode_str_trim_len( const char *str )
 {
-    int i, j, k = 0, z = strnlen( str, OX_REGCODE_STR_LEN );
+    size_t i, j, k = 0, z = strnlen( str, OX_REGCODE_STR_LEN );
     for ( i = z; i--; )
 	for ( j = OX_REGCODE_TO_ASCII_LUT_LEN; j--; )
             k += ( str[i] == OX_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | str[i] == OX_REGCODE_LOWER_CODE_TO_ASCII_LUT[j] );

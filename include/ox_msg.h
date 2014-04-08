@@ -4,13 +4,8 @@
 
 /* public interface */
 
-int32_t OX_ROOM_PREFIX_LEN = 4;
-int32_t OX_ROOM_HEADER_LEN = 48;
-
-typedef struct {
-    uint8_t length;
-    char *text;
-} ox_uint8_sized_string_t;
+#define OX_ROOM_PREFIX_LEN 4
+#define OX_ROOM_HEADER_LEN 48
 
 typedef struct {
     int32_t ref_id;

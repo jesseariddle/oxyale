@@ -9,7 +9,8 @@ vpath %.c src
 vpath %.h src
 vpath %.o obj
 vpath %.so lib
-TARGET=liboxyale.so
+SHAREDTARGET=liboxyale.so
+STATICTARGET=liboxyale.a
 TESTTARGET=run-tests
 LIBDIR=lib
 BINDIR=bin
@@ -22,14 +23,19 @@ TESTS=$(addprefix $(TESTDIR)/, tests.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG # -combine -fwhole_program
 
-all: liboxyale
+all: $(SHAREDTARGET)
 
-tests: liboxyale
+tests: $(SHAREDTARGET)
 	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) $(DEBUGFLAGS) -o $(TESTTARGET)
 
-liboxyale: $(OBJS)
+liboxyale.so: $(OBJS)
 	mkdir -p $(LIBDIR)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(TARGET)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(SHAREDTARGET)
+
+liboxyale.a: $(OBJS)
+	mkdir -p $(LIBDIR)
+	$(CC) $(CFLAGS) -c $(OBJS) -o $(LIBDIR)/$(STATICTARGET)
+	ar cq $(LIBDIR)/$@ $(OBJS)
 
 $(OBJS): $(OBJDIR)/%.o: %.c
 	mkdir -p $(OBJDIR)

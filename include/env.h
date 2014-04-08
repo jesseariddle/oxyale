@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
 
 #ifndef YES
 #define YES 1

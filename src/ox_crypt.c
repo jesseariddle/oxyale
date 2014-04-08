@@ -1,5 +1,5 @@
-#include "env.h"
-#include "ox_crypt.h"
+#include "../include/env.h"
+#include "../include/ox_crypt.h"
 
 static inline void seed_random( ox_crypt_t *ox_crypt, const int32_t s )
 {
@@ -11,7 +11,6 @@ static inline int32_t int32_random( ox_crypt_t *ox_crypt )
     int32_t q = ox_crypt->seed / 0x1f31d;
     int32_t r = ox_crypt->seed % 0x1f31d;
     int32_t a = 16807 * r - 2836 * q;
-
     /* if 0 < a: a, else: a + 0x7fffffff */
     ox_crypt->seed = a + ( a <= 0 ) * 0x7fffffff;
     return ox_crypt->seed;
@@ -37,24 +36,22 @@ void ox_crypt_init( ox_crypt_t *ox_crypt )
 
 void ox_encrypt( char *encrypted_buf, const ox_crypt_t *ox_crypt, const char *plain_text )
 {
-    size_t c = 0, i, j = 0, z = strnlen( plain_text, OX_PLAINTEXT_MAX );
+    size_t c = 0, i, z = strnlen( plain_text, OX_PLAINTEXT_MAX );
     char last_char = '\0';
 
     for ( i = z; i--; ) {
         encrypted_buf[i] = ( char )( plain_text[i] ^ ox_crypt->lut[c++] ^ last_char );
         last_char = ( char )( encrypted_buf[i] ^ ox_crypt->lut[c++] );
-        ++j;
-    } encrypted_buf[j] = '\0';
+    } encrypted_buf[z] = '\0';
 }
 
 void ox_decrypt( char *decrypted_buf, const ox_crypt_t *ox_crypt, const char *cipher_text )
 {
-    size_t c = 0, i, j = 0, z = strnlen( cipher_text, OX_CIPHERTEXT_MAX );
+    size_t c = 0, i, z = strnlen( cipher_text, OX_CIPHERTEXT_MAX );
     char last_char = '\0';
 
     for ( i = z; i--; ) {
         decrypted_buf[i] = ( char )( cipher_text[i] ^ ox_crypt->lut[c++] ^ last_char );
         last_char = ( char )( cipher_text[i] ^ ox_crypt->lut[c++] );
-        ++j;
-    } decrypted_buf[j] = '\0';
+    } decrypted_buf[z] = '\0';
 }
