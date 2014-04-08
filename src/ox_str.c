@@ -43,10 +43,13 @@ int32_t ox_str_uri_escape_len( char *unescaped_str )
 
 void ox_str_uri_escape( char *escaped_str, char *unescaped_str )
 {
-    int32_t c, i, x, z = strlen( unescaped_str );
+    int32_t c = 0, i, x, z = strlen( unescaped_str );
     for ( i = 0; i < z; ++i ) {
         x = ox_str_should_escape( &unescaped_str[i] );
-        if ( x )
+        if ( x ) {
             snprintf( escaped_str + i, 3, "%%%02x", x );
+            c += 3;
+        } else
+            escaped_str[c++] = unescaped_str[i];
     }
 }

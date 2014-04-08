@@ -20,12 +20,12 @@ SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(addprefix $(OBJDIR)/, env.o ox_regcode.o ox_crypt.o ox_str.o ox_msg.o)
 TESTS=$(addprefix $(TESTDIR)/, tests.c)
 DEBUGFLAGS=-O0 -D _DEBUG
-RELEASEFLAGS=-O2 -D NDEBUG -combine -fwhole_program
+RELEASEFLAGS=-O2 -D NDEBUG # -combine -fwhole_program
 
 all: liboxyale
 
 tests: liboxyale
-	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) -o $(TESTTARGET)
+	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) $(DEBUGFLAGS) -o $(TESTTARGET)
 
 liboxyale: $(OBJS)
 	mkdir -p $(LIBDIR)

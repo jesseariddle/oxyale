@@ -15,4 +15,4 @@ void ox_regcode_print( const ox_regcode_t *regcode );
 void ox_regcode_str_trim( char *trimmed_regcode_str, const char *str );
 int32_t ox_regcode_str_trim_len( const char *str );
 
-#endif /* OPAL_REGCODE_H_ */
+#endif /* OX_REGCODE_H_ */

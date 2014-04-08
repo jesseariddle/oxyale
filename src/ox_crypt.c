@@ -1,12 +1,12 @@
 #include "env.h"
 #include "ox_crypt.h"
 
-static void seed_random( ox_crypt_t *ox_crypt, const int32_t s )
+static inline void seed_random( ox_crypt_t *ox_crypt, const int32_t s )
 {
     ox_crypt->seed = s | !s;
 }
 
-static int32_t int32_random( ox_crypt_t *ox_crypt )
+static inline int32_t int32_random( ox_crypt_t *ox_crypt )
 {
     int32_t q = ox_crypt->seed / 0x1f31d;
     int32_t r = ox_crypt->seed % 0x1f31d;
@@ -17,12 +17,12 @@ static int32_t int32_random( ox_crypt_t *ox_crypt )
     return ox_crypt->seed;
 }
 
-static double double_random( ox_crypt_t *ox_crypt )
+static inline double double_random( ox_crypt_t *ox_crypt )
 {
     return ( ( double )int32_random( ox_crypt ) ) / 2147483647.0;
 }
 
-static int16_t int16_random( ox_crypt_t *ox_crypt, const int16_t max )
+static inline int16_t int16_random( ox_crypt_t *ox_crypt, const int16_t max )
 {
     return ( int16_t )( double_random( ox_crypt ) * ( double )max );
 }
