@@ -1,3 +1,3 @@
-libopenpalace
-=============
+oxyale
+======
 OpenPalace in C
