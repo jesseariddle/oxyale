@@ -26,3 +26,6 @@
 .DS_Store
 run-tests
 *.dSYM
+*.xcodeproj
+oxyale
+oxyaleTests
