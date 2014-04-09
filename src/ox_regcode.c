@@ -1,5 +1,5 @@
-#include "../include/env.h"
-#include "../include/ox_regcode.h"
+#include "env.h"
+#include "ox_regcode.h"
 
 #define OX_REGCODE_TO_ASCII_LUT_LEN 32
 #define OX_REGCODE_STR_LEN 13

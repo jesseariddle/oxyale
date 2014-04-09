@@ -1,5 +1,5 @@
-#include "../include/env.h"
-#include "../include/ox_str.h"
+#include "env.h"
+#include "ox_str.h"
 
 static uint8_t ox_str_should_escape( char *c )
 {

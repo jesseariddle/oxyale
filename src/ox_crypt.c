@@ -1,5 +1,5 @@
-#include "../include/env.h"
-#include "../include/ox_crypt.h"
+#include "env.h"
+#include "ox_crypt.h"
 
 static inline void seed_random( ox_crypt_t *ox_crypt, const int32_t s )
 {
