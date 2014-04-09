@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include "../../include/env.h"
-#include "../../include/ox_crypt.h"
-#include "../../include/ox_regcode.h"
-#include "../../include/ox_msg.h"
+#include "..//env.h"
+#include "../ox_crypt.h"
+#include "../ox_regcode.h"
+#include "../ox_msg.h"
 
 void crypto_test()
 {
