@@ -4,7 +4,7 @@
 #include "..//env.h"
 #include "../ox_crypt.h"
 #include "../ox_regcode.h"
-#include "../ox_msg.h"
+#include "../ox_netmsg.h"
 
 void crypto_test()
 {

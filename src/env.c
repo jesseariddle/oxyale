@@ -18,3 +18,15 @@ uint32_t ox_uint32_swap_endian( const uint32_t n )
 	(uint32 & 0x0000FF00) >> 8 | (uint32 & 0x000000FF) << 8;
     return uint32;
 }
+
+void ox_strify( char *str, const uint32_t uint32 )
+{
+    uint32_t t = uint32;
+    size_t i, z = 0;
+    while ( t /= 10 ) ++z;
+    i = z;
+    str[z + 1] = '\0';
+    do {
+        str[i--] = ( t % 10 ) + '0';
+    } while ( t /= 10 );
+}

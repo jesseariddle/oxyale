@@ -29,3 +29,4 @@ run-tests
 *.xcodeproj
 oxyale
 oxyaleTests
+/Debug/

@@ -15,19 +15,19 @@ static uint8_t ox_str_should_escape( char *c )
         return 0;
 }
 
-static uint32_t ox_str_escape_with_char( char *c )
-{
-    if ( *c & 0x80 )
-        return 0;    /* ignore multibyte chars */
-    else if ( *c < 0x1F || *c == 0x7F )
-        return *c;   /* control chars must be escaped */
-    int i = *c >> 3;
-    byte mask = ( ( byte * )c )[i];
-    if ( mask & ( 1 << ( *c & 0x7 ) ) )
-        return *c;
-    else
-        return 0;
-}
+/* static uint32_t ox_str_escape_with_char( char *c ) */
+/* { */
+/*     if ( *c & 0x80 ) */
+/*         return 0;    /\* ignore multibyte chars *\/ */
+/*     else if ( *c < 0x1F || *c == 0x7F ) */
+/*         return *c;   /\* control chars must be escaped *\/ */
+/*     int i = *c >> 3; */
+/*     byte mask = ( ( byte * )c )[i]; */
+/*     if ( mask & ( 1 << ( *c & 0x7 ) ) ) */
+/*         return *c; */
+/*     else */
+/*         return 0; */
+/* } */
 
 int32_t ox_str_uri_escape_len( char *unescaped_str )
 {
@@ -49,5 +49,5 @@ void ox_str_uri_escape( char *escaped_str, char *unescaped_str )
             c += 3;
         } else
             escaped_str[c++] = unescaped_str[i];
-    }
+    } escaped_str[c] = '\0';
 }

@@ -3,8 +3,7 @@
 
 CFLAGS=-pedantic -Wall -Wextra -g
 LDFLAGS=-shared -fPIC
-LDLIBS=-loxyale
-TESTFLAGS=-Llib
+LDLIBS=-loxyale -luv
 vpath %.c src
 vpath %.h src
 vpath %.o obj
@@ -12,9 +11,11 @@ vpath %.so lib
 SHAREDTARGET=liboxyale.so
 STATICTARGET=liboxyale.a
 TESTTARGET=run-tests
+BUILDDIR=build
 LIBDIR=lib
 BINDIR=bin
 OBJDIR=obj
+TESTFLAGS=-L$(LIBDIR)
 TESTDIR=src/tests
 SRCDIR=src
 SRCS=$(wildcard $(SRCDIR)/*.c)
@@ -23,19 +24,21 @@ TESTS=$(addprefix $(TESTDIR)/, tests.c)
 DEBUGFLAGS=-O0 -D _DEBUG
 RELEASEFLAGS=-O2 -D NDEBUG # -combine -fwhole_program
 
-all: $(SHAREDTARGET)
+all: $(SHAREDTARGET) $(STATICTARGET) $(TESTS)
 
 tests: $(SHAREDTARGET)
 	$(CC) $(CFLAGS) $(TESTS) $(LDLIBS) $(TESTFLAGS) $(DEBUGFLAGS) -o $(TESTTARGET)
 
 liboxyale.so: $(OBJS)
-	mkdir -p $(LIBDIR)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(LIBDIR)/$(SHAREDTARGET)
+	mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -o $(BUILDDIR)/$(SHAREDTARGET)
+	cp $(BUILDDIR)/$(SHAREDTARGET) $(LIBDIR)/$(SHAREDTARGET)
 
 liboxyale.a: $(OBJS)
-	mkdir -p $(LIBDIR)
-	$(CC) $(CFLAGS) -c $(OBJS) -o $(LIBDIR)/$(STATICTARGET)
-	ar cq $(LIBDIR)/$@ $(OBJS)
+	mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) -c $(OBJS) -o $(BUILDDIR)/$(STATICTARGET)
+	ar cq $(BUILDDIR)/$@ $(OBJS)
+	cp $(BUILDDIR)/$(STATICTARGET) $(LIBDIR)/$(STATICTARGET)
 
 $(OBJS): $(OBJDIR)/%.o: %.c
 	mkdir -p $(OBJDIR)
@@ -48,6 +51,7 @@ $(TESTS): $(TESTDIR)
 
 clean:
 	rm -rf $(OBJDIR)
-	rm -rf $(LIBDIR)
+	rm -f $(LIBDIR)/$(SHAREDTARGET) $(LIBDIR)/$(STATICTARGET)
+	rm -rf $(BUILDDIR)
 	rm -f $(TESTTARGET)
 	rm -rf $(TESTTARGET).dSYM
