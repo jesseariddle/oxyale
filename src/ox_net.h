@@ -1,11 +1,11 @@
 #pragma once
-#ifndef OX_CLIENT_H_
-#define OX_CLIENT_H_
+#ifndef OX_NET_H_
+#define OX_NET_H_
 
 #define        OX_INET_PORT_STR_LEN 5
 #define        OX_INET_ADDR_STR_LEN 15
 #define       OX_INET6_ADDR_STR_LEN 45
-#define                DEFAULT_PORT 9998
+#define         OX_NET_DEFAULT_PORT 9998
 
 #define    AUXFLAGS_UNKNOWN_MACHINE 0
 #define             AUXFLAGS_MAC68K 1
@@ -42,24 +42,32 @@ typedef enum {
     STATE_DISCONNECTED,
     STATE_HANDSHAKING,
     STATE_READY
-} ox_client_connection_state_e;
+} ox_net_connection_state_e;
 
 typedef struct {
     struct addrinfo *ai;
     int sockfd;
-    ox_client_connection_state_e state;
-} ox_client_t;
+    ox_net_connection_state_e state;
+} ox_net_t;
 
-void ox_net_init(ox_client_t *client, struct addrinfo *sock);
-int32_t ox_net_connect(ox_client_t *client, const char *username, const char *host, const uint16_t port);
-void ox_net_close(ox_client_t *client);
+typedef struct ox_net_connect_s {
+    uv_work_t req;
+    char *host;
+    unsigned int port;
+    unsigned int initial_room;
+    char *username;
+} ox_net_connect_t;
 
+void ox_net_connect_to_host(char *host, unsigned int port, unsigned int initial_room);
+
+/* uv_connect_cb */
 void ox_net_on_connect(uv_connect_t *req, int status);
-void ox_net_on_close();
-void ox_net_on_write_end(uv_write_t *req, int status);
-uv_buf_t ox_net_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size);
-void ox_net_on_echo_read(uv_stream_t *server, ssize_t nread, uv_buf_t buf);
+/* getaddrinfo_cb */
+void ox_net_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
+/* uv_connect_cb */
+/* void ox_net_connect(ox_net_t *client, const char *username, const char *host, const uint16_t port, uv_connect_cb cb); */
+void ox_net_on_close(ox_net_t *client);
+void ox_net_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+void ox_net_on_resolve_host(const char *fqdn, const int port, uv_getaddrinfo_cb cb);
 
-void ox_net_resolve_host(char *hostname);
-
-#endif /* OX_CLIENT_H_ */
+#endif /* OX_NET_H_ */

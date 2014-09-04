@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <assert.h>
+
 #include "env.h"
 
 #ifdef _WIN32
@@ -11,106 +14,108 @@
 #include <unistd.h>
 #endif
 
-#include "libuv/include/uv.h"
+#include "../deps/libuv/include/uv.h"
 #include "ox_net.h"
 
-void ox_net_init(ox_client_t *client, struct addrinfo *ai)
+static uv_getaddrinfo_t resolver;
+static int message_id;
+static int message_size;
+static int message_p;
+static int waiting_for_more;
+
+void ox_net_start(char *host, unsigned int port, unsigned int initial_room))
 {
-    memset(ai, 0, sizeof *ai);
-    ai->ai_flags = AI_PASSIVE;
-    ai->ai_family = AF_UNSPEC;
-    ai->ai_socktype = SOCK_STREAM;
-    /* sock->ai_protocol = 1; */
+    fprintf(stderr, "DEBUG: ox_net_resolve_host\n");
+    char port_str[OX_INET_PORT_STR_LEN + 1];
+    snprintf(port_str, OX_INET_PORT_STR_LEN, "%d", port);
+    fprintf(stderr, "DEBUG: host: %s\n", fqdn);
+    fprintf(stderr, "DEBUG: port: %s\n", port_str);
+    uv_loop_t *loop = uv_default_loop();
 
-    client->ai = ai;
-    client->sockfd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-}
+    struct addrinfo *hints = malloc(sizeof *hints);
+    hints->ai_family = PF_INET;
+    hints->ai_socktype = SOCK_STREAM;
+    hints->ai_protocol = IPPROTO_TCP;
+    hints->ai_flags = 0;
 
-/* int ox_resolve returns
- * 0: if success
- * != 0: if error
- */
-static int ox_net_resolve(struct addrinfo *ai, const char *fqdn, int port)
-{
-	char port_str[6];
-	int c, i, z = sizeof port_str;
-	for (i = port; 0 < i; c = port[i] % 10, port /= 10) {
-		port_str[z - i - 1] = c;
-	}
-
-	loop = uv_default_loop();
-	struct addrinfo hints;
-	hints.ai_family = PF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = 0;
-
-	uv_getaddrinfo_t resolver;
-	int r = uv_getaddrinfo(loop, &resolver, ox_net_resolve_cb, fqdn, ox_int2str(port), &hints);
-	if (r) {
-		fprintf(stderr, "getaddrinfo call error %s\n", uv_err_name(uv_last_err(loop)));
-		return 1;
-	}
-	return uv_run(loop, UV_RUN_DEFAULT);
-}
-
-static int ox_net_resolve_cb()
-{
-
-}
-
-/* int ox_client_connect returns
- * -1: cannot connect
- * -2: cannot resolve service
- * -3: cannot resolve host
- * 0: connected successfully
- */
-int32_t ox_net_connect( ox_client_t *client, const char *username, const char *host, const uint16_t port )
-{
-    struct addrinfo *ai = client->ai;
-    int8_t is_connected = 0;
-    int32_t result;
-    char *port_str = alloca(OX_INET_PORT_STR_LEN + 1);
-
-    ox_strify( port_str, port );
-    if ( 0 == ox_resolve( ai, host, port_str ) ) {
-        ai->ai_addrlen = sizeof *ai->ai_addr;
-        is_connected = connect( client->sockfd, ( struct sockaddr * )ai->ai_addr, ai->ai_addrlen );
-        if ( !is_connected ) {
-            close ( client->sockfd );
-            result = -1;
-        }
-        result = 0;
-    } else if ( 0 == ox_resolve( ai, host, NULL ) ) {
-        /* can resolve host, but cannot connect to service */
-        result = -2;
-    } else {
-        /* cannot resolve host */
-        result = -3;
+    fprintf(stderr, "DEBUG: before uv_getaddrinfo\n");
+    uv_getaddrinfo_t *resolver = malloc(sizeof *resolver);
+    int r = uv_getaddrinfo(loop, resolver, ox_net_on_resolve, fqdn, port_str, hints);
+    fprintf(stderr, "DEBUG: after uv_getaddrinfo\n");
+    if (r) {
+        fprintf(stderr, "getaddrinfo call error %s\n", uv_strerror(r));
+        return;
     }
-    return result;
 }
 
-void ox_net_connect_cb(uv_connect_t *req, int status)
+/* getaddrinfo_cb */ 
+void ox_net_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
 {
-	int NUM_WRITE_REQS = 4;
-    uv_write_t *req;
-    uv_buf_t buf;
-    int i, r;
-
-    buf = uv_buf_init("PING", 4);
-    for (i = 0; i < NUM_WRITE_REQS; ++i) {
-    	req = malloc(sizeof *req);
-    	ASSERT(req != NULL);
-    	//r = uv_write(req, (uv_stream_t*)&tcp_handle, &buf, 1, write_cb));
-    	ASSERT(r == 0);
+    fprintf(stderr, "DEBUG: ox_net_on_resolve\n");
+    if (-1 == status) {
+        fprintf(stderr, "getaddrinfo callback error %s\n", uv_strerror(status));
     }
-
-    //uv_close((uv_handle_t*)&tcp_handle, ox_net_close_cb);
+    else {
+        fprintf(stderr, "DEBUG: resolve... successful.\n");
+        char addr[16] = {'\0'};
+        uv_ip4_name((struct sockaddr_in *)res->ai_addr, addr, OX_INET_ADDR_STR_LEN);
+        fprintf(stderr, "DEBUG: Resolved to: %s\n", addr);
+        uv_connect_t *connect_req = malloc(sizeof *connect_req);
+        uv_tcp_t *socket = malloc(sizeof *socket);
+        uv_loop_t *loop = uv_default_loop();
+        uv_tcp_init(loop, socket);
+        connect_req->data = socket;
+        uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_net_on_connect);
+    }
+    uv_freeaddrinfo(res);
+    free(req->data);
+    free(req);
 }
 
-void ox_net_close_cb()
+/* uv_connect_cb */
+void ox_net_on_connect(uv_connect_t *req, int status)
 {
-    //close(client->sockfd);
-    //freeaddrinfo(client->ai);
+    fprintf(stderr, "DEBUG: ox_net_on_connect\n");
+    if (status) {
+        fprintf(stderr, "Error: %d. %s\n", status, uv_strerror(status));
+    }
+    else {
+        fprintf("DEBUG: connect successful.\n");
+    }
+    free(req->data);
+    free(req);
+}
+
+/* void ox_net_connect_cb(uv_connect_t *req, int status) */
+/* { */
+/*     int NUM_WRITE_REQS = 4; */
+/*     uv_write_t *wr = (uv_write_t *)req; */
+/*     uv_buf_t buf; */
+/*     int i, r; */
+/*     buf = uv_buf_init("PING", 4); */
+/*     for (i = 0; i < NUM_WRITE_REQS; ++i) { */
+/*     	req = malloc(sizeof *req); */
+/*     	assert(req != NULL); */
+/*     	//r = uv_write(req, (uv_stream_t*)&tcp_handle, &buf, 1, write_cb)); */
+/*     	assert(r == 0); */
+/*     } */
+/*     //uv_close((uv_handle_t*)&tcp_handle, ox_net_close_cb); */
+/* } */
+
+void ox_net_on_close()
+{
+    close(client->sockfd);
+    freeaddrinfo(client->ai);
+}
+
+/* uv_write_cb */
+void ox_net_write_start()
+{
+    
+}
+
+/* uv_alloc_cb */
+void ox_net_on_alloc_buffer(uv_handle_t *handle, int suggested_size, uv_buf_t *buf)
+{
+    *buf = malloc(suggested_size);
 }
