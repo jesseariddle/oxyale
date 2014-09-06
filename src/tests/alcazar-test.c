@@ -2,14 +2,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "../../libuv/include/uv.h"
-#include "../ox_net.h"
+#include "../ox_client.h"
 
 uv_loop_t *loop;
-
-#define ERROR(code, msg) do {                                               \
-    fprintf(stderr, "%s: [%s: %s]\n", msg, uv_err_name((code)), uv_strerror((code)));   \
-    assert(0);                                                                          \
-} while(0);
 
 typedef struct {
     uv_write_t req;
@@ -33,7 +28,6 @@ void connect_cb(uv_connect_t *req, int status)
     else {
          printf("Feelin' fine.\n");
     }
-/* free(socket); */
 }
 
 /* getaddrinfo_cb */
@@ -83,6 +77,6 @@ int main(int argc, char *argv[])
 {
     fprintf(stderr, "DEBUG: main\n");
     loop = uv_default_loop();
-    ox_net_start("otakucool.epalaces.com", OX_NET_DEFAULT_PORT, 0 /* initial room */);
+    ox_net_start("otakucool.epalaces.com", OX_INET_DEFAULT_PORT, 0 /* initial room */);
     return uv_run(loop, UV_RUN_DEFAULT);
 }
