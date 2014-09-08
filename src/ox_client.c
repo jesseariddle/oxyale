@@ -23,9 +23,16 @@ static int message_size;
 static int message_p;
 static int waiting_for_more;
 
-void ox_client_start(char *host, unsigned int port, unsigned int initial_room)
+static char *ox_username[1024];
+static int ox_room;
+
+void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room)
 {
     fprintf(stderr, "DEBUG: ox_client_start\n");
+
+    ox_username = username;
+    ox_room = initial_room;
+
     char port_str[OX_INET_PORT_STR_LEN + 1];
     snprintf(port_str, OX_INET_PORT_STR_LEN, "%d", port);
     fprintf(stderr, "DEBUG: host: %s\n", host);
@@ -81,9 +88,9 @@ void ox_client_on_connect(uv_connect_t *req, int status)
     }
     else {
         fprintf(stderr, "DEBUG: connect successful.\n");
+        
     }
     free(req->data);
-    free(req);
 }
 
 /* void ox_client_connect_cb(uv_connect_t *req, int status) */

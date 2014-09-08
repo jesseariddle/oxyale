@@ -38,6 +38,13 @@
 #define       DLCAPS_FILES_HTTPSRVR 0x00000100
 #define           DLCAPS_EXTEND_PKT 0x00000200
 
+enum conn_state {
+    c_busy,  /* Busy; waiting for incoming data or for a write to complete. */
+    c_done,  /* Done; read incoming data or write finished. */
+    c_stop,  /* Stopped. */
+  c_dead
+};
+
 typedef enum {
     STATE_DISCONNECTED,
     STATE_HANDSHAKING,
@@ -58,8 +65,13 @@ typedef struct ox_client_connect_s {
     char *username;
 } ox_client_connect_t;
 
-void ox_client_connect_to_host(char *host, unsigned int port, unsigned int initial_room);
+static int puid_changed = 0;
+static unsigned int puid_counter = 0xf5dc385e;
+static unsigned int puid_crc = 0xc144c580;
+static unsigned int regCounter = 0xcf07309c;
+static unsigned int reg_crc = 0x5905f923;
 
+void ox_client_start(char *host, unsigned int port, unsigned int initial_room);
 /* uv_connect_cb */
 void ox_client_on_connect(uv_connect_t *req, int status);
 /* getaddrinfo_cb */
