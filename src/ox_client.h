@@ -42,7 +42,7 @@ enum conn_state {
     c_busy,  /* Busy; waiting for incoming data or for a write to complete. */
     c_done,  /* Done; read incoming data or write finished. */
     c_stop,  /* Stopped. */
-  c_dead
+    c_dead
 };
 
 typedef enum {
@@ -71,7 +71,7 @@ static unsigned int puid_crc = 0xc144c580;
 static unsigned int regCounter = 0xcf07309c;
 static unsigned int reg_crc = 0x5905f923;
 
-void ox_client_start(char *host, unsigned int port, unsigned int initial_room);
+void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room);
 /* uv_connect_cb */
 void ox_client_on_connect(uv_connect_t *req, int status);
 /* getaddrinfo_cb */

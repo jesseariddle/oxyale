@@ -29,6 +29,9 @@ endif
 
 all: clean $(EXE) # libuv.a liboxyale.a
 
+test: all
+	./$(EXE)
+
 $(EXE): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -I$(INC) -I$(SRC) $(LIBUV) $(EXESRC)/$(EXE).c $(OBJS) -o $(EXE)
 

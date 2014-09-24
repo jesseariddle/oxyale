@@ -28,15 +28,15 @@ static int ox_room;
 
 void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room)
 {
-    fprintf(stderr, "DEBUG: ox_client_start\n");
+    fprintf(stderr, "--- DEBUG: ox_client_start\n");
 
-    ox_username = username;
+    strlcpy(ox_username, username, sizeof username);
     ox_room = initial_room;
 
     char port_str[OX_INET_PORT_STR_LEN + 1];
     snprintf(port_str, OX_INET_PORT_STR_LEN, "%d", port);
-    fprintf(stderr, "DEBUG: host: %s\n", host);
-    fprintf(stderr, "DEBUG: port: %s\n", port_str);
+    fprintf(stderr, "--- DEBUG: host: %s\n", host);
+    fprintf(stderr, "--- DEBUG: port: %s\n", port_str);
     uv_loop_t *loop = uv_default_loop();
 
     struct addrinfo *hints = malloc(sizeof *hints);
@@ -45,10 +45,10 @@ void ox_client_start(char *username, char *host, unsigned int port, unsigned int
     hints->ai_protocol = IPPROTO_TCP;
     hints->ai_flags = 0;
 
-    fprintf(stderr, "DEBUG: before uv_getaddrinfo\n");
+    fprintf(stderr, "--- DEBUG: before uv_getaddrinfo\n");
     uv_getaddrinfo_t *resolver = malloc(sizeof *resolver);
     int r = uv_getaddrinfo(loop, resolver, ox_client_on_resolve, host, port_str, hints);
-    fprintf(stderr, "DEBUG: after uv_getaddrinfo\n");
+    fprintf(stderr, "--- DEBUG: after uv_getaddrinfo\n");
     if (r) {
         fprintf(stderr, "getaddrinfo call error %s\n", uv_strerror(r));
         return;
@@ -58,15 +58,15 @@ void ox_client_start(char *username, char *host, unsigned int port, unsigned int
 /* getaddrinfo_cb */ 
 void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
 {
-    fprintf(stderr, "DEBUG: ox_client_on_resolve\n");
+    fprintf(stderr, "--- DEBUG: ox_client_on_resolve\n");
     if (-1 == status) {
         fprintf(stderr, "getaddrinfo callback error %s\n", uv_strerror(status));
     }
     else {
-        fprintf(stderr, "DEBUG: resolve... successful.\n");
+        fprintf(stderr, "--- DEBUG: resolve... successful.\n");
         char addr[16] = {'\0'};
         uv_ip4_name((struct sockaddr_in *)res->ai_addr, addr, OX_INET_ADDR_STR_LEN);
-        fprintf(stderr, "DEBUG: Resolved to: %s\n", addr);
+        fprintf(stderr, "--- DEBUG: Resolved to: %s\n", addr);
         uv_connect_t *connect_req = malloc(sizeof *connect_req);
         uv_tcp_t *socket = malloc(sizeof *socket);
         uv_loop_t *loop = uv_default_loop();
@@ -75,19 +75,19 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
         uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_client_on_connect);
     }
     uv_freeaddrinfo(res);
-    free(req->data);
-    free(req);
+    /* free(req->data); */
+    /* free(req); */
 }
 
 /* uv_connect_cb */
 void ox_client_on_connect(uv_connect_t *req, int status)
 {
-    fprintf(stderr, "DEBUG: ox_client_on_connect\n");
+    fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
     if (status) {
         fprintf(stderr, "Error: %d. %s\n", status, uv_strerror(status));
     }
     else {
-        fprintf(stderr, "DEBUG: connect successful.\n");
+        fprintf(stderr, "--- DEBUG: connect successful.\n");
         
     }
     free(req->data);
