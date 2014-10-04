@@ -76,7 +76,7 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
     }
     uv_freeaddrinfo(res);
     free(req->data);
-    free(req);
+    /* free(req); */
 }
 
 /* uv_connect_cb */
@@ -84,8 +84,8 @@ void ox_client_on_connect(uv_connect_t *req, int status)
 {
     fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
     if (status) {
-        fprintf(stderr, "Error: %d. %s\n", status, uv_strerror(status));
         uv_close(req);
+        fprintf(stderr, "--- DEBUG: Error: %d. %s\n", status, uv_strerror(status));
     }
     else {
         fprintf(stderr, "--- DEBUG: connect successful.\n");
@@ -94,21 +94,7 @@ void ox_client_on_connect(uv_connect_t *req, int status)
         uv_read_start(client, ox_client_alloc_buffer, ox_client_on_read);
     }
     free(req->data); /* uv_socket_t* */
-    free(req); /* uv_tcp_handle_t* */
-}
-
-/* uv_read_cb */
-void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
-{
-    /* assemble message from pieces */
-    fprintf(stderr, "--- DEBUG: ox_client_on_read.\n");
-}
-
-/* uv_write_cb */
-void ox_client_on_write()
-{
-    /* send message pieces */
-
+    /* free(req); */ /* uv_tcp_handle_t* */
 }
 
 /* void ox_client_connect_cb(uv_connect_t *req, int status) */
@@ -135,14 +121,36 @@ void ox_client_on_close()
 }
 */
 
-/* uv_write_cb */
-void ox_client_write_start()
+/* uv_read_cb */
+void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
 {
-    
+    if (0 < nread) {
+        printf("--- DEBUG: read: %s\n", req->data);
+    }
+    else {
+        uv_close((uv_handle_t *)tcp, ox_client_on_close);
+    }
+
+    free(req->data);
+}
+
+/* uv_write_cb */
+void ox_client_on_write(uv_write_t *req, int status)
+{
+    if (0 < req->data) {
+        fprintf(stderr, "--- DEBUG: read: %s\n", req->base);
+    }
+
+    free(req->data);
 }
 
 /* uv_alloc_cb */
 void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
     *buf = uv_buf_init(malloc(suggested_size), suggested_size);
+}
+
+void ox_client_on_close(uv_handle_t *handle)
+{
+    fprintf(stderr, "--- DEBUG: ox_client_on_close()\n");
 }

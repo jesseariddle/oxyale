@@ -80,7 +80,8 @@ void ox_client_on_connect(uv_connect_t *req, int status);
 void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
 /* uv_connect_cb */
 /* void ox_client_connect(ox_client_t *client, const char *username, const char *host, const uint16_t port, uv_connect_cb cb); */
-void ox_client_on_close(ox_client_t *client);
+void ox_client_on_close(uv_handle_t *handle);
+/* void ox_client_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf); */
 void ox_client_on_resolve_host(const char *fqdn, const int port, uv_getaddrinfo_cb cb);
 /* uv_read_cb */
 void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
