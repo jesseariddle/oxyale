@@ -75,8 +75,8 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
         uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_client_on_connect);
     }
     uv_freeaddrinfo(res);
-    /* free(req->data); */
-    /* free(req); */
+    free(req->data);
+    free(req);
 }
 
 /* uv_connect_cb */
@@ -85,12 +85,30 @@ void ox_client_on_connect(uv_connect_t *req, int status)
     fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
     if (status) {
         fprintf(stderr, "Error: %d. %s\n", status, uv_strerror(status));
+        uv_close(req);
     }
     else {
         fprintf(stderr, "--- DEBUG: connect successful.\n");
-        
+        /* register read/write event handlers */
+        uv_tcp_t *client = malloc(sizeof *client);
+        uv_read_start(client, ox_client_alloc_buffer, ox_client_on_read);
     }
-    free(req->data);
+    free(req->data); /* uv_socket_t* */
+    free(req); /* uv_tcp_handle_t* */
+}
+
+/* uv_read_cb */
+void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
+{
+    /* assemble message from pieces */
+    fprintf(stderr, "--- DEBUG: ox_client_on_read.\n");
+}
+
+/* uv_write_cb */
+void ox_client_on_write()
+{
+    /* send message pieces */
+
 }
 
 /* void ox_client_connect_cb(uv_connect_t *req, int status) */
@@ -124,7 +142,7 @@ void ox_client_write_start()
 }
 
 /* uv_alloc_cb */
-void ox_client_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
     *buf = uv_buf_init(malloc(suggested_size), suggested_size);
 }
