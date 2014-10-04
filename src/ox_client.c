@@ -75,7 +75,7 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
         uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_client_on_connect);
     }
     uv_freeaddrinfo(res);
-    /* free(req->data); */
+    free(req->data);
     /* free(req); */
 }
 
@@ -84,12 +84,13 @@ void ox_client_on_connect(uv_connect_t *req, int status)
 {
     fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
     if (status) {
-        fprintf(stderr, "Error: %d. %s\n", status, uv_strerror(status));
+        fprintf(stderr, "--- DEBUG: Error: %d. %s\n", status, uv_strerror(status));
     }
     else {
         fprintf(stderr, "--- DEBUG: connect successful.\n");
         
     }
+
     free(req->data);
 }
 
@@ -117,14 +118,36 @@ void ox_client_on_close()
 }
 */
 
-/* uv_write_cb */
-void ox_client_write_start()
+/* uv_read_cb */
+void ox_client_on_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
-    
+    if (0 < nread) {
+        printf("--- DEBUG: read: %s\n", buf->base);
+    }
+    else {
+        uv_close((uv_handle_t *)tcp, ox_client_on_close);
+    }
+
+    free(buf->base);
+}
+
+/* uv_write_cb */
+void ox_client_on_write(uv_write_t *req, int status)
+{
+    if (0 < req->data) {
+        fprintf(stderr, "--- DEBUG: read: %s\n", req->base);
+    }
+
+    free(req->data);
 }
 
 /* uv_alloc_cb */
 void ox_client_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
     *buf = uv_buf_init(malloc(suggested_size), suggested_size);
+}
+
+void ox_client_on_close(uv_handle_t *handle)
+{
+    fprintf(stderr, "--- DEBUG: ox_client_on_close()\n");
 }
