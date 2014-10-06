@@ -15,50 +15,48 @@
 #endif
 
 #include "../deps/libuv/include/uv.h"
+#include "ox_net.h"
 #include "ox_client.h"
 
-static uv_getaddrinfo_t resolver;
-static int message_id;
-static int message_size;
-static int message_p;
-static int waiting_for_more;
+/* static uv_getaddrinfo_t resolver_; */
+/* static int message_id_; */
+/* static int message_size_; */
+/* static int message_p_; */
+/* static int waiting_for_more_; */
 
-static char *ox_username[1024];
-static int ox_room;
+void 
+ox_client_init(ox_client_t *client, uv_loop_t *loop) {
+    client->loop = loop;
+    client->puid_changed = 0;
+    client->puid_counter = 0xf5dc385e;
+    client->puid_crc = 0xc144c580;
+    client->reg_counter = 0xcf07309c;
+    client->reg_crc = 0x5905f923;
+}
 
-void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room)
-{
-    fprintf(stderr, "--- DEBUG: ox_client_start\n");
-
-    strlcpy(ox_username, username, sizeof username);
-    ox_room = initial_room;
-
-    char port_str[OX_INET_PORT_STR_LEN + 1];
-    snprintf(port_str, OX_INET_PORT_STR_LEN, "%d", port);
-    fprintf(stderr, "--- DEBUG: host: %s\n", host);
-    fprintf(stderr, "--- DEBUG: port: %s\n", port_str);
-    uv_loop_t *loop = uv_default_loop();
-
-    struct addrinfo *hints = malloc(sizeof *hints);
-    hints->ai_family = PF_INET;
-    hints->ai_socktype = SOCK_STREAM;
-    hints->ai_protocol = IPPROTO_TCP;
-    hints->ai_flags = 0;
-
-    fprintf(stderr, "--- DEBUG: before uv_getaddrinfo\n");
-    uv_getaddrinfo_t *resolver = malloc(sizeof *resolver);
-    int r = uv_getaddrinfo(loop, resolver, ox_client_on_resolve, host, port_str, hints);
-    fprintf(stderr, "--- DEBUG: after uv_getaddrinfo\n");
-    if (r) {
-        fprintf(stderr, "getaddrinfo call error %s\n", uv_strerror(r));
-        return;
+void
+ox_client_deinit() {
+    if (client->username) {
+        free(client->username);
     }
 }
 
+void 
+ox_client_start(ox_client_t *client, char *username, char *host, unsigned int port, unsigned int initial_room) {
+    fprintf(stderr, "--- DEBUG: ox_client_start\n");
+
+    size_t z = strlen(username);
+    client->username = calloc(z + 1, sizeof *client->username);
+    strlcpy(client->username, username, z);
+    client->room_id = initial_room;
+
+    ox_net_start(username, host, port);
+}
+
 /* getaddrinfo_cb */ 
-void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
-{
-    fprintf(stderr, "--- DEBUG: ox_client_on_resolve\n");
+void 
+ox_net_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res) {
+    fprintf(stderr, "--- DEBUG: ox_net_on_resolve\n");
     if (-1 == status) {
         fprintf(stderr, "getaddrinfo callback error %s\n", uv_strerror(status));
     }
@@ -72,85 +70,58 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
         uv_loop_t *loop = uv_default_loop();
         uv_tcp_init(loop, socket);
         connect_req->data = socket;
-        uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_client_on_connect);
+        uv_tcp_connect(connect_req, socket, (struct sockaddr *)res->ai_addr, ox_net_on_connect);
     }
     uv_freeaddrinfo(res);
     free(req->data);
-    /* free(req); */
 }
 
 /* uv_connect_cb */
-void ox_client_on_connect(uv_connect_t *req, int status)
-{
-    fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
+void 
+ox_net_on_connect(uv_connect_t *connection, int status) {
+    fprintf(stderr, "--- DEBUG: ox_net_on_connect\n");
     if (status) {
-        uv_close(req);
         fprintf(stderr, "--- DEBUG: Error: %d. %s\n", status, uv_strerror(status));
+        uv_close(connection->handle, ox_net_on_close);
     }
     else {
         fprintf(stderr, "--- DEBUG: connect successful.\n");
-        /* register read/write event handlers */
-        uv_tcp_t *client = malloc(sizeof *client);
-        uv_read_start(client, ox_client_alloc_buffer, ox_client_on_read);
+        uv_read_start(connection->handle, ox_net_alloc_buffer, ox_net_on_read);
     }
-    free(req->data); /* uv_socket_t* */
-    /* free(req); */ /* uv_tcp_handle_t* */
 }
-
-/* void ox_client_connect_cb(uv_connect_t *req, int status) */
-/* { */
-/*     int NUM_WRITE_REQS = 4; */
-/*     uv_write_t *wr = (uv_write_t *)req; */
-/*     uv_buf_t buf; */
-/*     int i, r; */
-/*     buf = uv_buf_init("PING", 4); */
-/*     for (i = 0; i < NUM_WRITE_REQS; ++i) { */
-/*     	req = malloc(sizeof *req); */
-/*     	assert(req != NULL); */
-/*     	//r = uv_write(req, (uv_stream_t*)&tcp_handle, &buf, 1, write_cb)); */
-/*     	assert(r == 0); */
-/*     } */
-/*     //uv_close((uv_handle_t*)&tcp_handle, ox_client_close_cb); */
-/* } */
-
-/*
-void ox_client_on_close()
-{
-    close(client->sockfd);
-    freeaddrinfo(client->ai);
-}
-*/
 
 /* uv_read_cb */
-void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
-{
+void 
+ox_net_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf) {
+    fprintf(stderr, "--- DEBUG: ox_net_on_read\n");
     if (0 < nread) {
-        printf("--- DEBUG: read: %s\n", req->data);
+        fprintf(stderr, "--- DEBUG: successfully read %d bytes of data:\n", nread);
+        fprintf(stderr, "--- DEBUG: read: %s\n", buf->base);
     }
     else {
-        uv_close((uv_handle_t *)tcp, ox_client_on_close);
+        fprintf(stderr, "--- DEBUG: error: closing connection\n");
+        uv_close((uv_handle_t *)req, ox_net_on_close);
     }
-
+    fprintf(stderr, "--- DEBUG: freeing req->data\n");
     free(req->data);
 }
 
 /* uv_write_cb */
-void ox_client_on_write(uv_write_t *req, int status)
-{
+void 
+ox_net_on_write(uv_write_t *req, int status) {
     if (0 < req->data) {
-        fprintf(stderr, "--- DEBUG: read: %s\n", req->base);
+        fprintf(stderr, "--- DEBUG: read: %s\n", req->data);
     }
-
     free(req->data);
 }
 
 /* uv_alloc_cb */
-void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
-{
+void 
+ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     *buf = uv_buf_init(malloc(suggested_size), suggested_size);
 }
 
-void ox_client_on_close(uv_handle_t *handle)
-{
-    fprintf(stderr, "--- DEBUG: ox_client_on_close()\n");
+void 
+ox_client_on_close(uv_handle_t *handle) {
+    fprintf(stderr, "--- DEBUG: ox_net_on_close()\n");
 }
