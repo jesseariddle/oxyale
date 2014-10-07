@@ -84,6 +84,6 @@ void ox_client_on_close(uv_handle_t *handle);
 /* void ox_client_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf); */
 void ox_client_on_resolve_host(const char *fqdn, const int port, uv_getaddrinfo_cb cb);
 /* uv_read_cb */
-void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
+void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf);
 
 #endif /* ox_client_H_ */

@@ -23,15 +23,16 @@ static int message_size;
 static int message_p;
 static int waiting_for_more;
 
-static char *ox_username[1024];
-static int ox_room;
+static char *username_;
+static int room_id_;
 
-void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room)
-{
+void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room) {
     fprintf(stderr, "--- DEBUG: ox_client_start\n");
 
-    strlcpy(ox_username, username, sizeof username);
-    ox_room = initial_room;
+    int z = strlen(username);
+    username_ = calloc(z, sizeof *ox_username);
+    strlcpy(&username_, username, z);
+    room_id_ = initial_room;
 
     char port_str[OX_INET_PORT_STR_LEN + 1];
     snprintf(port_str, OX_INET_PORT_STR_LEN, "%d", port);
@@ -56,8 +57,7 @@ void ox_client_start(char *username, char *host, unsigned int port, unsigned int
 }
 
 /* getaddrinfo_cb */ 
-void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res)
-{
+void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res) {
     fprintf(stderr, "--- DEBUG: ox_client_on_resolve\n");
     if (-1 == status) {
         fprintf(stderr, "getaddrinfo callback error %s\n", uv_strerror(status));
@@ -80,8 +80,7 @@ void ox_client_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *re
 }
 
 /* uv_connect_cb */
-void ox_client_on_connect(uv_connect_t *req, int status)
-{
+void ox_client_on_connect(uv_connect_t *req, int status) {
     fprintf(stderr, "--- DEBUG: ox_client_on_connect\n");
     if (status) {
         uv_close(req);
@@ -97,8 +96,7 @@ void ox_client_on_connect(uv_connect_t *req, int status)
     /* free(req); */ /* uv_tcp_handle_t* */
 }
 
-/* void ox_client_connect_cb(uv_connect_t *req, int status) */
-/* { */
+/* void ox_client_connect_cb(uv_connect_t *req, int status) { */
 /*     int NUM_WRITE_REQS = 4; */
 /*     uv_write_t *wr = (uv_write_t *)req; */
 /*     uv_buf_t buf; */
@@ -135,8 +133,7 @@ void ox_client_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf)
 }
 
 /* uv_write_cb */
-void ox_client_on_write(uv_write_t *req, int status)
-{
+void ox_client_on_write(uv_write_t *req, int status) {
     if (0 < req->data) {
         fprintf(stderr, "--- DEBUG: read: %s\n", req->base);
     }
@@ -145,12 +142,10 @@ void ox_client_on_write(uv_write_t *req, int status)
 }
 
 /* uv_alloc_cb */
-void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
-{
+void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     *buf = uv_buf_init(malloc(suggested_size), suggested_size);
 }
 
-void ox_client_on_close(uv_handle_t *handle)
-{
+void ox_client_on_close(uv_handle_t *handle) {
     fprintf(stderr, "--- DEBUG: ox_client_on_close()\n");
 }
