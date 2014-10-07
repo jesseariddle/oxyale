@@ -6,6 +6,7 @@
 #define        OX_INET_ADDR_STR_LEN 15
 #define       OX_INET6_ADDR_STR_LEN 45
 #define        OX_INET_DEFAULT_PORT 9998
+#define          OX_NET_HEADER_SIZE 12
 
 #define    AUXFLAGS_UNKNOWN_MACHINE 0
 #define             AUXFLAGS_MAC68K 1
@@ -38,6 +39,24 @@
 #define       DLCAPS_FILES_HTTPSRVR 0x00000100
 #define           DLCAPS_EXTEND_PKT 0x00000200
 
+#define OX_NET_HEADER_FIELDS                                                  \
+  /* public */                                                                \
+  int message_id;                                                             \
+  int message_size;                                                           \
+  int message_p;                                                              \
+
+#define OX_NET_MESSAGE_FIELDS                                                 \
+  /* public */                                                                \
+  /* TODO this is where i left off */
+
+typedef struct ox_message_s {
+    OX_NET_HEADER_FIELDS
+    OX_NET_MESSAGE_FIELDS
+} ox_message_t;
+
+/* don't export */
+#undef OX_NET_HEADER_FIELDS
+
 enum conn_state {
     c_busy,  /* Busy; waiting for incoming data or for a write to complete. */
     c_done,  /* Done; read incoming data or write finished. */
@@ -49,16 +68,17 @@ typedef enum {
     STATE_DISCONNECTED,
     STATE_HANDSHAKING,
     STATE_READY
-} ox_net_connection_state_e;
+} ox_client_connection_state_e;
 
-typedef struct {
+typedef struct ox_client_s {
+    /* uv_work_t req; */
+
+    uv_loop_t *loop;
+
     struct addrinfo *ai;
     int sockfd;
-    ox_net_connection_state_e state;
-} ox_net_t;
+    ox_client_connection_state_e state;
 
-typedef struct ox_net_client_s {
-    /* uv_work_t req; */
     int is_connected;
     
     char *host;
@@ -71,24 +91,30 @@ typedef struct ox_net_client_s {
     unsigned int puid_crc;
     unsigned int reg_counter;
     unsigned int reg_crc;
-} ox_net_client_t;
+
+    uv_getaddrinfo_t resolver;
+    int message_id;
+    int message_size;
+    int message_p;
+    int waiting_for_more;
+} ox_client_t;
 
 /* init client */
 void ox_client_init(ox_client_t *client, uv_loop_t *loop);
 /* start client */
-void ox_client_start(char *username, char *host, unsigned int port, unsigned int initial_room);
+void ox_client_start(ox_client_t *client, char *username, char *host, unsigned int port, unsigned int initial_room);
 /* alloc_cb */
 void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-/* uv_connect_cb */
-void ox_net_on_connect(uv_connect_t *req, int status);
 /* getaddrinfo_cb */
-void ox_net_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
+void ox_client_on_resolve_complete(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
 /* uv_connect_cb */
-/* void ox_net_connect(ox_net_t *client, const char *username, const char *host, const uint16_t port, uv_connect_cb cb); */
-void ox_net_on_close(uv_handle_t *handle);
-/* void ox_net_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf); */
-void ox_net_on_resolve_host(const char *fqdn, const int port, uv_getaddrinfo_cb cb);
+void ox_client_on_connect_complete(uv_connect_t *connection, int status);
+/* uv_connect_cb? */
+void ox_client_on_disconnect_complete(uv_handle_t *handle);
+/* void ox_client_on_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf); */
+void ox_client_on_resolve_host_complete(const char *fqdn, const int port, uv_getaddrinfo_cb cb);
 /* uv_read_cb */
-void ox_net_on_read(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf);
+void ox_client_on_read_complete(uv_stream_t *req, ssize_t nread, const uv_buf_t *buf);
+
 
 #endif /* OX_CLIENT_H_ */
