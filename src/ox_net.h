@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OX_CLIENT_H_
-#define OX_CLIENT_H_
+#ifndef OX_NET_H_
+#define OX_NET_H_
 
 #define        OX_INET_PORT_STR_LEN 5
 #define        OX_INET_ADDR_STR_LEN 15
@@ -80,6 +80,7 @@ void ox_client_start(char *username, char *host, unsigned int port, unsigned int
 /* alloc_cb */
 void ox_client_alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
 /* uv_connect_cb */
+void ox_net_write();
 void ox_net_on_connect(uv_connect_t *req, int status);
 /* getaddrinfo_cb */
 void ox_net_on_resolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
