@@ -1,149 +1,136 @@
 #include <oxyale.h>
 
-void oxl_net_logon_init(oxl_net_logon_t *self, 
-                        char *username,
-                        char *wizpass,
-                        int initial_room_id,
-                        unsigned int reg_crc,
-                        int reg_counter,
-                        unsigned int puid_crc,
-                        int puid_counter)
+void InitPalLogonCmd(PalLogonCmd *logonCmd,
+                     char *username,
+                     char *wizpass,
+                     int initialRoomID,
+                     uint regCRC,
+                     int regCounter,
+                     uint PUIDCRC,
+                     int PUIDCounter)
 {
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)buf->base; */
-    fprintf(stderr, "--- DEBUG: oxl_net_logon_init\n");
-    self->msg_id = OXL_NET_TX_LOGON;
-    self->msg_len = 0x80;
-    self->msg_ref = 0;
-    self->reg_crc = reg_crc;
-    self->reg_counter = reg_counter;
-    self->username_len = (unsigned char)strlen(username);
-    strncpy(self->username, username, OXL_CLIENT_USERNAME_SZ_CAP);
-    strncpy(self->wizpass, wizpass, OXL_CLIENT_WIZ_PASS_SZ_CAP);
+    fprintf(stderr, "--- DEBUG: InitPalLogonCmd\n");
+    logonCmd->cmdID = PAL_TX_LOGON_CMD;
+    logonCmd->cmdLen = 0x80;
+    logonCmd->cmdRef = 0;
+    logonCmd->regCRC = regCRC;
+    logonCmd->regCounter = regCounter;
+    logonCmd->usernameLen = (byte)strlen(username);
+    strncpy(logonCmd->username, username, PAL_USERNAME_SZ_CAP);
+    strncpy(logonCmd->wizpass, wizpass, PAL_WIZ_PASS_SZ_CAP);
 
     /* raw */
-    self->flags = OXL_NET_AUXFLAGS_AUTHENTICATE | OXL_NET_AUXFLAGS_WIN32;
-    
-    self->puid_counter = puid_counter;
-    self->puid_crc = puid_crc;
-    self->demo_elapsed = 0;
-    self->total_elapsed = 0;
-    self->demo_limit = 0;
+    logonCmd->flags = PAL_NET_AUXFLAGS_AUTHENTICATE | PAL_NET_AUXFLAGS_WIN32;
+
+    logonCmd->PUIDCounter = PUIDCounter;
+    logonCmd->PUIDCRC = PUIDCRC;
+    logonCmd->demoElapsed = 0;
+    logonCmd->totalElapsed = 0;
+    logonCmd->demoLimit = 0;
 
      /* initial room */
-    self->initial_room_id = initial_room_id;
+    logonCmd->initialRoomID = initialRoomID;
 
      /* does nothing, but is logged by server */
-    /* strncpy(self->reserved, "OXYALE", 6); */
-    /* strncpy(self->reserved, "PC4232", 6); */
-    strncpy(self->reserved, "OPNPAL", 6);
+    /* strncpy(logonCmd->reserved, "OXYALE", 6); */
+    /* strncpy(logonCmd->reserved, "PC4232", 6); */
+    strncpy(logonCmd->reserved, "OPNPAL", 6);
 
      /* ignored on server */
-    self->ul_upload_requested_protocol_version = 0;
+    logonCmd->ulUploadRequestedProtocolVersion = 0;
 
      /* TODO upload capabilities plox */
-    self->ul_upload_capabilities = OXL_NET_ULCAPS_ASSETS_PALACE;
+    logonCmd->ulUploadCapabilities = PAL_NET_ULCAPS_ASSETS_PALACE;
 
      /* TODO download capabilities plox */
-    self->ul_download_capabilities =
-        OXL_NET_DLCAPS_ASSETS_PALACE |
-        OXL_NET_DLCAPS_FILES_PALACE |
-        OXL_NET_DLCAPS_FILES_HTTPSRVR;
+    logonCmd->ulDownloadCapabilities =
+        PAL_NET_DLCAPS_ASSETS_PALACE |
+        PAL_NET_DLCAPS_FILES_PALACE |
+        PAL_NET_DLCAPS_FILES_HTTPSRVR;
 
      /* unused */
-    self->ul_2d_engine_capabilities = 0;
+    logonCmd->ul2DEngineCapabilities = 0;
 
      /* unused */
-    self->ul_2d_graphics_capabilities = 0;
+    logonCmd->ul2DGraphicsCapabilities = 0;
 
      /* unused */
-    self->ul_3d_engine_capabilities = 0;
+    logonCmd->ul3DEngineCapabilities = 0;
 }
 
-void oxl_net_logon_dump(const oxl_net_logon_t *self)
+void DumpPalLogonCmd(const PalLogonCmd *logonCmd)
 {
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
     /* raw */
-    fprintf(stderr, "logon->message_id = 0x%x\n", self->msg_id);
-    fprintf(stderr, "logon->message_size = %d\n", self->msg_len);
-    fprintf(stderr, "logon->message_ref = 0x%x\n", self->msg_ref);
-    fprintf(stderr, "logon->reg_crc = 0x%x\n", self->reg_crc);
-    fprintf(stderr, "logon->reg_counter = 0x%x\n", self->reg_counter);
-    fprintf(stderr, "logon->username_len = %d\n", self->username_len);
-    fprintf(stderr, "logon->username = %s\n", self->username);
-    fprintf(stderr, "logon->flags = 0x%x\n", self->flags);
-    fprintf(stderr, "logon->puid_counter = 0x%x\n", self->puid_counter);
-    fprintf(stderr, "logon->puid_crc = 0x%x\n", self->puid_crc);
-    fprintf(stderr, "logon->demo_elapsed = 0x%x\n", self->demo_elapsed);
-    fprintf(stderr, "logon->total_elapsed = 0x%x\n", self->total_elapsed);
-    fprintf(stderr, "logon->demo_limit = 0x%x\n", self->demo_limit);
+    fprintf(stderr, "logonCmd->cmdID = 0x%x\n", loginCmd->cmdID);
+    fprintf(stderr, "logonCmd->cmdSize = %d\n", loginCmd->cmdLen);
+    fprintf(stderr, "logonCmd->cmdRef = 0x%x\n", loginCmd->cmdRef);
+    fprintf(stderr, "logonCmd->regCRC = 0x%x\n", loginCmd->regCRC);
+    fprintf(stderr, "logonCmd->regCounter = 0x%x\n", loginCmd->regCounter);
+    fprintf(stderr, "logonCmd->usernameLen = %d\n", loginCmd->usernameLen);
+    fprintf(stderr, "logonCmd->username = %s\n", loginCmd->username);
+    fprintf(stderr, "logonCmd->flags = 0x%x\n", loginCmd->flags);
+    fprintf(stderr, "logonCmd->PUIDCounter = 0x%x\n", loginCmd->PUIDCounter);
+    fprintf(stderr, "logonCmd->PUIDCRC = 0x%x\n", loginCmd->PUIDCRC);
+    fprintf(stderr, "logonCmd->demoElapsed = 0x%x\n", loginCmd->demoElapsed);
+    fprintf(stderr, "logonCmd->totalElapsed = 0x%x\n", loginCmd->totalElapsed);
+    fprintf(stderr, "logonCmd->demoLimit = 0x%x\n", loginCmd->demoLimit);
 
     /* initial room */
-    fprintf(stderr, "logon->room_id = %d\n", self->initial_room_id); 
+    fprintf(stderr, "logonCmd->roomID = %d\n", loginCmd->initialRoomID);
 
     /* does nothing, but is logged by server */
-    fprintf(stderr, "logon->reserved = %s\n", self->reserved); 
-    
+    fprintf(stderr, "logonCmd->reserved = %s\n", loginCmd->reserved);
+
     /* ignored on server */
     fprintf(stderr,
-            "logon->ul_upload_requested_protocol_version = 0x%x\n",
-            self->ul_upload_requested_protocol_version); 
+            "logonCmd->ulUploadRequestedProtocolVersion = 0x%x\n",
+            logonCmd->ulUploadRequestedProtocolVersion);
 
     /* TODO upload capabilities plox */
-    fprintf(stderr,
-            "logon->ul_upload_capabilities = 0x%x\n",
-            self->ul_upload_capabilities); 
+    fprintf(stderr, "logonCmd->ulUploadCapabilities = 0x%x\n", logonCmd->ulUploadCapabilities);
 
     /* TODO download capabilities plox */
-    fprintf(stderr,
-            "logon->ul_download_capabilities = 0x%x\n",
-            self->ul_download_capabilities);
-    
-    /* unused */   
-    fprintf(stderr,
-            "logon->ul_2d_engine_capabilities = 0x%x\n",
-            self->ul_2d_engine_capabilities);
+    fprintf(stderr, "logonCmd->ulDownloadCapabilities = 0x%x\n", logonCmd->ulDownloadCapabilities);
 
     /* unused */
-    fprintf(stderr,
-            "logon->ul_2d_graphics_capabilities = 0x%x\n",
-            self->ul_2d_graphics_capabilities);
+    fprintf(stderr, "logonCmd->ul2DEngineCapabilities = 0x%x\n", logonCmd->ul2DEngineCapabilities);
 
     /* unused */
-    fprintf(stderr,
-            "logon->ul_3d_engine_capabilities = 0x%x\n",
-            self->ul_3d_engine_capabilities);
+    fprintf(stderr, "logonCmd->ul2DGraphicsCapabilities = 0x%x\n", logonCmd->ul2DGraphicsCapabilities);
+
+    /* unused */
+    fprintf(stderr, "logonCmd->ul3DEngineCapabilities = 0x%x\n", logonCmd->ul3DEngineCapabilities);
 }
 
-void oxl_net_goto_room_init(oxl_net_goto_room_t *self,
-                            unsigned int user_id,
-                            short room_id)
+void InitPalGotoRoomCmd(PalGotoRoomCmd *gotoRoomCmd, uint userID, short roomID)
 {
-    self->msg_id = OXL_NET_TX_GOTO_ROOM;
-    self->msg_len = sizeof(short);
-    self->msg_ref = user_id;
-    self->room_id = room_id;
+    gotoRoomCmd->cmdID = PAL_TX_GOTO_ROOM_CMD;
+    gotoRoomCmd->cmdLen = sizeof(short);
+    gotoRoomCmd->cmdRef = userID;
+    gotoRoomCmd->roomID = roomID;
 }
 
-void oxl_net_say_dump(oxl_net_say_t *self)
+void DumpPalSayCmd(PalSayCmd *sayCmd)
 {
-    fprintf(stderr, "say->msg_id = 0x%x\n", self->msg_id);
-    fprintf(stderr, "say->msg_size = %d\n", self->msg_len);
-    fprintf(stderr, "say->msg_ref = 0x%x\n", self->msg_ref);
-    fprintf(stderr, "say->len = %d\n", self->len);
-    fprintf(stderr, "say->msg = %s\n", self->msg);
+    fprintf(stderr, "sayCmd->cmdID = 0x%x\n", sayCmd->cmdID);
+    fprintf(stderr, "sayCmd->cmdLen = %d\n", sayCmd->cmdLen);
+    fprintf(stderr, "sayCmd->cmdRef = 0x%x\n", sayCmd->cmdRef);
+    fprintf(stderr, "sayCmd->len = %d\n", sayCmd->len);
+    fprintf(stderr, "sayCmd->msg = %s\n", sayCmd->msg);
 }
 
-void oxl_net_say_init(oxl_net_say_t *self, oxl_client_t *client, char *text)
+void InitPalSayCmd(PalSayCmd *sayCmd, PalClient *client, char *text)
 {
     /* oxl_say_t *say_msg = (oxl_say_t *)&buf.base; */
-    char ct[OXL_CRYPT_CIPHERTEXT_SZ_CAP];
-    oxl_crypt_encrypt(&client->crypt, text, ct);
+    char ct[PAL_CRYPT_CIPHERTEXT_SZ_CAP];
+    PalEncrypt(&client->crypt, text, ct);
     fprintf(stderr, "text: \"%s\", ct: \"%s\"\n", text, ct);
-    uint z = strnlen(ct, OXL_CRYPT_CIPHERTEXT_SZ_CAP);
-    self->msg_id = OXL_NET_TX_SAY;
-    self->msg_len = z + 3;
-    self->msg_ref = client->user.id;
-    self->len = (ushort)z;
-    memcpy(self->msg, ct, z);
+    uint z = strnlen(ct, PAL_CRYPT_CIPHERTEXT_SZ_CAP);
+    sayCmd->cmdID = PAL_TX_SAY_CMD;
+    sayCmd->cmdLen = z + 3;
+    sayCmd->cmdRef = client->user.id;
+    sayCmd->len = (ushort)z;
+    memcpy(sayCmd->msg, ct, z);
 }
-

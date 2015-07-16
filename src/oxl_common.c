@@ -1,6 +1,7 @@
 #include <oxyale.h>
 
-uint8_t oxl_env_is_big_endian()
+/*
+uint8_t PalEnvIsBigEndian()
 {
     union {
         uint32_t ui32;
@@ -10,7 +11,7 @@ uint8_t oxl_env_is_big_endian()
     return bint.ui8[0] == 1;
 }
 
-uint32_t oxl_uint32_swap_endian(const uint32_t n)
+uint32_t SwapEndianUint32(const uint32_t n)
 {
     uint32_t uint32 = n;
     uint32 = (uint32 & 0xFFFF0000) >> 16 | (uint32 & 0x0000FFFF) << 16;
@@ -19,9 +20,9 @@ uint32_t oxl_uint32_swap_endian(const uint32_t n)
     return uint32;
 }
 
-void oxl_strify(char *str, const uint32_t uint32)
+void Stringify(char *str, const uint32_t ui32)
 {
-    uint32_t t = uint32;
+    uint32_t t = ui32;
     size_t i, z = 0;
     while ( t /= 10 ) ++z;
     i = z;
@@ -30,8 +31,9 @@ void oxl_strify(char *str, const uint32_t uint32)
         str[i--] = ( t % 10 ) + '0';
     } while ( t /= 10 );
 }
+*/
 
-void oxl_dump_buf(const uv_buf_t buf, size_t size)
+void DumpPalBuf(const uv_buf_t buf, size_t size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -77,7 +79,7 @@ void oxl_dump_buf(const uv_buf_t buf, size_t size)
     }
 }
 
-void oxl_dump_buf_p(uv_buf_t *buf, size_t size)
+void DumpPalBufPtr(uv_buf_t *buf, size_t size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -123,19 +125,16 @@ void oxl_dump_buf_p(uv_buf_t *buf, size_t size)
     }
 }
 
-void free_write_req(write_req_t *req)
+void FreePalBuf(write_req_t *req)
 {
-    fprintf(stderr, "--- DEBUG: free_write_req\n");
+    fprintf(stderr, "--- DEBUG: FreePalBuf\n");
     free(req->buf.base);
     free(req);
 }
 
-void write_data(uv_stream_t *dest,
-                size_t size,
-                uv_buf_t buf,
-                uv_write_cb callback)
+void WritePalBuf(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback)
 {
-    fprintf(stderr, "--- DEBUG: write_data\n");
+    fprintf(stderr, "--- DEBUG: WritePalBuf\n");
     write_req_t *req = malloc(sizeof *req);
     req->buf = uv_buf_init(malloc(size), size);
     memcpy(req->buf.base, buf.base, size);
