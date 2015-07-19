@@ -33,7 +33,7 @@ void Stringify(char *str, const uint32_t ui32)
 }
 */
 
-void DumpPalBuf(const uv_buf_t buf, size_t size)
+void DumpPalBuf(const uv_buf_t buf, uint size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -79,7 +79,7 @@ void DumpPalBuf(const uv_buf_t buf, size_t size)
     }
 }
 
-void DumpPalBufPtr(uv_buf_t *buf, size_t size)
+void DumpPalBufPtr(uv_buf_t *buf, uint size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -125,17 +125,17 @@ void DumpPalBufPtr(uv_buf_t *buf, size_t size)
     }
 }
 
-void FreePalBuf(write_req_t *req)
+void FreePalBuf(OXLWriteReq *req)
 {
     fprintf(stderr, "--- DEBUG: FreePalBuf\n");
     free(req->buf.base);
     free(req);
 }
 
-void WritePalBuf(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback)
+void WritePalBuf(uv_stream_t *dest, uint size, uv_buf_t buf, uv_write_cb callback)
 {
     fprintf(stderr, "--- DEBUG: WritePalBuf\n");
-    write_req_t *req = malloc(sizeof *req);
+    OXLWriteReq *req = malloc(sizeof(*req));
     req->buf = uv_buf_init(malloc(size), size);
     memcpy(req->buf.base, buf.base, size);
     fprintf(stderr, "--- DEBUG: uv_write...\n");
