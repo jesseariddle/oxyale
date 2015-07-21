@@ -9,10 +9,10 @@
 #ifndef oxyale_oxyale_palroom_h
 #define oxyale_oxyale_palroom_h
 
-#include <paluser.h>
-#include <palhotspot.h>
-#include <palprop.h>
-#include <palview.h>
+#include "paluser.h"
+#include "palhotspot.h"
+#include "palprop.h"
+#include "palview.h"
 
 typedef struct OXLPalRoomMsgStruct {
     PAL_HEADER_FIELDS

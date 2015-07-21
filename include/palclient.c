@@ -39,7 +39,7 @@
 #include <oxyale-palclient.h>
 */
 
-void OXLPalClientFinishLogon(uv_write_t *req, int status)
+void OXLPalClientFinishLogon(uv_write_t *req, int32_t status)
 {
     fprintf(stderr, "--- DEBUG: oxl_client_do_logon_cb\n");
     OXLWriteReq *wr = (OXLWriteReq *)req;
@@ -70,9 +70,9 @@ void OXLPalClientFinishLogon(uv_write_t *req, int status)
     }
 }
 
-void OXLPalClientLogon(OXLPalClient *client, uint size, uint refID)
+void OXLPalClientLogon(OXLPalClient *client, uint32_t size, uint32_t refID)
 {
-    fprintf(stderr, "--- DEBUG: OXLPalaceLogon(0x%x, 0x%x, 0x%x)\n", (uint)client, size, refID);
+    fprintf(stderr, "--- DEBUG: OXLPalaceLogon(0x%x, 0x%x, 0x%x)\n", (uint32_t)client, size, refID);
     
     client->room.userID = refID;
     fprintf(stderr, "--- DEBUG: client->currentRoom.userID = 0x%x;\n", refID);
@@ -82,12 +82,12 @@ void OXLPalClientLogon(OXLPalClient *client, uint size, uint refID)
     
     logonMsg->req.data = client;
     
-    int z = sizeof(OXLPalLogonCmd);
+    int32_t z = sizeof(OXLPalLogonCmd);
     fprintf(stderr, "--- DEBUG: sizeof(OXLPalaceLogonMsg) is %d\n", z);
     logonMsg->buf = uv_buf_init(malloc(z), z);
     fprintf(stderr, "--- DEBUG: uv_buf_init(malloc(%d), sizeof(%d));\n", z, z);
     
-    int i = 0;
+    int32_t i = 0;
     fprintf(stderr, "\n--- DEBUG: logon_wr->buf.base[%d]: %08x\n\n", i, logonMsg->buf.base[i]);
     
     OXLPalInitLogonCmd((OXLPalLogonCmd *)logonMsg->buf.base,
@@ -118,10 +118,10 @@ void OXLPalClientLogon(OXLPalClient *client, uint size, uint refID)
      fprintf(stderr,
      "--- DEBUG: uv_write(0x%x (write_req), 0x%x (client->conn), "
      "0x%x (&logonMsg), 1, 0x%x);\n",
-     (uint)&write_req,
-     (uint)client->conn,
-     (uint)&logonMsg,
-     (uint)&finishLogon);
+     (uint32_t)&write_req,
+     (uint32_t)client->conn,
+     (uint32_t)&logonMsg,
+     (uint32_t)&finishLogon);
      */
     fprintf(stderr, "--- DEBUG: we are about to write the following:\n");
     OXLDumpBuf(logonMsg->buf, z);
@@ -144,12 +144,12 @@ void OXLPalClientPerformHandshake(OXLPalClient *client, ssize_t nread, const uv_
     if (0 < nread) {
         fprintf(stderr, "--- DEBUG: %ld bytes read\n", nread);
         OXLPalHeader *header = (OXLPalHeader *)buf->base;
-        uint msgID = header->msgID;
+        uint32_t msgID = header->msgID;
         
         /* endian test follows in switch statement */
         /* *(int *)buf->base; */
-        uint msgLen;
-        uint msgRef;
+        uint32_t msgLen;
+        uint32_t msgRef;
         
         switch (msgID) {
             case PAL_RX_UNKNOWN_SERVER:
@@ -184,7 +184,7 @@ void OXLPalClientPerformHandshake(OXLPalClient *client, ssize_t nread, const uv_
     }
 }
 
-static void OXLPalClientHandleServerVersion(OXLPalClient *client, uint msgLen, uint msgRef, const uv_buf_t *buf)
+static void OXLPalClientHandleServerVersion(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
     fprintf(stderr, "--- DEBUG: handleServerVersion\n");
     
@@ -194,7 +194,7 @@ static void OXLPalClientHandleServerVersion(OXLPalClient *client, uint msgLen, u
     /* emit palace server version received event signal */
 }
 
-static void OXLPalClientHandleConnErr(OXLPalClient *client, uint msgLen, uint msgRef)
+static void OXLPalClientHandleConnErr(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef)
 {
     fprintf(stderr, "--- DEBUG: handleConnErr\n");
     switch (msgRef) {
@@ -260,10 +260,11 @@ static void OXLPalClientHandleConnErr(OXLPalClient *client, uint msgLen, uint ms
         fprintf(stderr, "--- DEBUG: puid unchanged. connection dropped.\n");
     }
     
-    /* TODO emit connection error received event signal */
+    /* emit connection error received event signal */
+    client->event.PalEventOpenConnFail(client);
 }
 
-void OXLPalClientHandleAltLogon(OXLPalClient *client, uint msgLen, uint msgRef, const uv_buf_t *buf)
+void OXLPalClientHandleAltLogon(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
     OXLPalLogonCmd *altLogonCmd = (OXLPalLogonCmd *)buf->base;
     if (altLogonCmd->puidCounter != client->puidCounter ||
@@ -275,19 +276,21 @@ void OXLPalClientHandleAltLogon(OXLPalClient *client, uint msgLen, uint msgRef, 
         client->puidChangedFlag = 1;
     }
     
-    /* TODO emit alt_logon received event signal */
+    /* emit alt_logon received event signal */
+    /* client->event.PalEventAltLogon(client); */
 }
 
-void OXLPalClientHandleServerInfo(OXLPalClient *client, uint msgLen, uint msgRef, const uv_buf_t *buf)
+void OXLPalClientHandleServerInfo(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
     OXLPalServerInfoMsg *serverInfo = (OXLPalServerInfoMsg *)buf;
     client->permissions = serverInfo->permissions;
     strlcpy(client->servername, serverInfo->servername, PAL_SERVER_NAME_SZ_CAP);
     
     /* TODO emit handle server info received event signal  */
+    client->event.PalEventServerInfo(client);
 }
 
-void OXLPalClientHandleUserStatus(OXLPalClient *client, uint msgLen, uint msgRef, const uv_buf_t *buf)
+void OXLPalClientHandleUserStatus(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
     OXLPalUser *user = (OXLPalUser *)buf->base;
     if (-1 < client->user.id) {
@@ -296,7 +299,7 @@ void OXLPalClientHandleUserStatus(OXLPalClient *client, uint msgLen, uint msgRef
     /* TODO emit handle user status received event signal  */
 }
 
-void OXLPalClientHandleMaxUsersLoggedOn(OXLPalClient *client, uint msgLen, uint msgRef, const uv_buf_t *buf)
+void OXLPalClientHandleMaxUsersLoggedOn(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
     /* TODO emit user logged on and max received event signal */
 }
@@ -315,9 +318,9 @@ void OXLPalClientFinishCloseConn(uv_handle_t *handle)
 /* uv_read_cb */
 void OXLPalClientFinishReadData(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
-    uint msgID = 0;
-    uint msgLen;
-    uint msgRef;
+    uint32_t msgID = 0;
+    uint32_t msgLen;
+    uint32_t msgRef;
     
     fprintf(stderr, "--- DEBUG: oxl_client_read_cb\n");
     if (nread == 0) {
@@ -538,7 +541,7 @@ void OXLPalClientFinishReadData(uv_stream_t *stream, ssize_t nread, const uv_buf
 }
 
 /* uv_connect_cb */
-void OXLPalClientFinishOpenConn(uv_connect_t *conn, int status)
+void OXLPalClientFinishOpenConn(uv_connect_t *conn, int32_t status)
 {
     fprintf(stderr, "--- DEBUG: oxl_client_conn_open_cb\n");
     OXLPalClient *client = conn->data;
@@ -659,7 +662,7 @@ void OXLPalClientOpenConnection(OXLPalClient *client,
     uv_getaddrinfo_t *resolver = malloc(sizeof *resolver);
     resolver->data = client;
     
-    int r = uv_getaddrinfo(loop, resolver, OXLPalClientFinishResolvePalServer, host, portString, hints);
+    int32_t r = uv_getaddrinfo(loop, resolver, OXLPalClientFinishResolvePalServer, host, portString, hints);
     
     /* fprintf(stderr, "--- DEBUG: after uv_getaddrinfo\n"); */
     if (r) {
@@ -674,7 +677,7 @@ void OXLPalClientFinishJoinRoom()
     /* TODO emit room joined event signal */
 }
 
-void OXLPalClientJoinRoom(OXLPalClient *client, uint32_t gotoRoomID)
+void OXLPalClientJoinRoom(OXLPalClient *client, int32_t gotoRoomID)
 {
     if (client->state != STATE_CONNECTED) {
         return;
@@ -712,7 +715,7 @@ void OXLPalClientLeaveRoom(OXLPalClient *client)
     /* TODO emit leave room event signal */
 }
 
-void OXLPalGotoRoom(OXLPalClient *client, uint gotoRoomID)
+void OXLPalClientGotoRoom(OXLPalClient *client, int32_t gotoRoomID)
 {
     if (client->state != STATE_CONNECTED || client->roomID == gotoRoomID) {
         return;
@@ -738,7 +741,7 @@ void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_c
     
     OXLPalSayBubble *bubble = malloc(sizeof *bubble);
     
-    int z = sizeof(OXLPalSayBubble);
+    int32_t z = sizeof(OXLPalSayBubble);
     wr->buf = uv_buf_init(malloc(z), z);
     OXLPalSayCmdInit((OXLPalSayCmd *)wr->buf.base, client, buf.base);
     

@@ -12,7 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libuv/uv.h>
-#include <paldefs.h>
+
+#include "paldefs.h"
 
 typedef unsigned char byte;
 

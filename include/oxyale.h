@@ -18,11 +18,12 @@
 #include <limits.h>
 
 #include <libuv/uv.h>
-#include <palcom.h>
-#include <palroom.h>
-#include <palreg.h>
-#include <palcrypto.h>
-#include <palclient.h>
+
+#include "palcom.h"
+#include "palroom.h"
+#include "palreg.h"
+#include "palcrypto.h"
+#include "palclient.h"
 
 #ifndef __cplusplus
 #define false 0

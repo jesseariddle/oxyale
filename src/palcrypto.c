@@ -1,12 +1,13 @@
 #include <palcom.h>
 #include <palcrypto.h>
 
-static inline void OXLSeedRandom(OXLPalCrypto *crypto, const int32_t s)
+static inline void OXLPalCryptoSeedRandom(OXLPalCrypto *crypto, const int32_t s)
 {
+    /* if s == 0: s = 1 else: s */
     crypto->seed = s | !s;
 }
 
-static inline int32_t OXLRandomInt32(OXLPalCrypto *crypto)
+static inline int32_t OXLPalCryptoRandomInt32(OXLPalCrypto *crypto)
 {
     int32_t q = crypto->seed / 0x1f31d;
     int32_t r = crypto->seed % 0x1f31d;
@@ -16,41 +17,42 @@ static inline int32_t OXLRandomInt32(OXLPalCrypto *crypto)
     return crypto->seed;
 }
 
-static inline double OXLRandomDouble(OXLPalCrypto *crypto)
+static inline double OXLPalCryptoRandomDouble(OXLPalCrypto *crypto)
 {
-    return ((double)OXLRandomInt32(crypto)) / 2147483647.0;
+    return ((double)OXLPalCryptoRandomInt32(crypto)) / 2147483647.0; /* 0x7fffffff */
 }
 
-static inline int16_t OXLRandomInt16(OXLPalCrypto *crypto, const int16_t max)
+static inline int16_t OXLPalCryptoRandomInt16(OXLPalCrypto *crypto, const int16_t max)
 {
-    return (int16_t)(OXLRandomDouble(crypto) * (double)max);
+    return (int16_t)(OXLPalCryptoRandomDouble(crypto) * (double)max);
 }
 
-void OXLInitPalCrypto(OXLPalCrypto *crypto)
+void OXLPalCryptoInit(OXLPalCrypto *crypto)
 {
     size_t i;
-    OXLSeedRandom(crypto, 0xa2c2a);
+    OXLPalCryptoSeedRandom(crypto, 0xa2c2a);
     for (i = PAL_CRYPTO_LUT_LEN; i--;) {
-        crypto->lut[i] = OXLRandomInt16(crypto, PAL_CRYPTO_LUT_MAX);
+        crypto->lut[i] = OXLPalCryptoRandomInt16(crypto, PAL_CRYPTO_LUT_MAX);
     }
+    OXLPalCryptoSeedRandom(crypto, 1);
 }
 
-void OXLPalEncrypto(const OXLPalCrypto crypto, const char *plainText, char *cipherText)
+void OXLPalCryptoEncrypt(const OXLPalCrypto crypto, const char *plainText, char *cipherText)
 {
     size_t c = 0, i, len = strnlen(plainText, PAL_CRYPTO_PLAINTEXT_SZ_CAP);
-    char prev_char = '\0';
+    char prevChar = '\0';
     for (i = len - 1; i--;) {
-        cipherText[i] = plainText[i] ^ crypto.lut[c++] ^ prev_char;
-        prev_char = cipherText[i] ^ crypto.lut[c++];
+        cipherText[i] = plainText[i] ^ crypto.lut[c++] ^ prevChar;
+        prevChar = cipherText[i] ^ crypto.lut[c++];
     } cipherText[len] = '\0';
 }
 
-void OXLPalDecrypto(const OXLPalCrypto crypto, const char *cipherText, char *plainText)
+void OXLPalCryptoDecrypt(const OXLPalCrypto crypto, const char *cipherText, char *plainText)
 {
     size_t c = 0, i, len = strnlen(cipherText, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
-    char prev_char = '\0';
+    char prevChar = '\0';
     for (i = len - 1; i--;) {
-        plainText[i] = cipherText[i] ^ crypto.lut[c++] ^ prev_char;
-        prev_char = cipherText[i] ^ crypto.lut[c++];
+        plainText[i] = cipherText[i] ^ crypto.lut[c++] ^ prevChar;
+        prevChar = cipherText[i] ^ crypto.lut[c++];
     } plainText[len] = '\0';
 }
