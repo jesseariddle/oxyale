@@ -3,7 +3,7 @@
 
 /* Test code: 9YAT-C8MM-GJVZL */
 
-static inline uint32_t OXLPalComputeLicenseCRC(const uint32_t seed)
+static inline uint32_t OXLPalRegComputeLicenseCRC(const uint32_t seed)
 {
     uint32_t s, crc = PAL_REG_CRC_MAGIC;
     /*
@@ -18,20 +18,20 @@ static inline uint32_t OXLPalComputeLicenseCRC(const uint32_t seed)
     return crc;
 }
 
-static inline uint32_t OXLPalComputeLicenseCounter(const uint32_t seed, const uint32_t crc)
+static inline uint32_t OXLPalRegComputeLicenseCounter(const uint32_t seed, const uint32_t crc)
 {
     return (seed ^ PAL_REG_MAGIC_LONG) ^ crc;
 }
 
-void OXLPalGenerateReg(OXLPalReg *reg)
+void OXLPalRegGenerate(OXLPalReg *reg)
 {
     uint32_t seed = (uint32_t)time(NULL);
-    uint32_t crc = OXLPalComputeLicenseCRC(seed);
+    uint32_t crc = OXLPalRegComputeLicenseCRC(seed);
     reg->crc = crc;
-    reg->counter = OXLPalComputeLicenseCounter(seed, crc);
+    reg->counter = OXLPalRegComputeLicenseCounter(seed, crc);
 }
 
-int32_t OXLPalRegStringTrimLen(const char *str)
+int32_t OXLPalRegTrimStringLen(const char *str)
 {
     size_t i, j, len = strnlen(str, PAL_REG_STR_LEN);
     uint32_t k = 0;
@@ -42,43 +42,45 @@ int32_t OXLPalRegStringTrimLen(const char *str)
     return k;
 }
 
-void OXLPalTrimRegString(const char *regString, char *trimmedRegString)
+void OXLPalRegTrimString(const char *regString, char *trimmedRegString)
 {
-    size_t i, j, k = 0, z = strnlen(str, PAL_REGCODE_STR_LEN);
+    size_t i, j, k = 0, z = strnlen(regString, PAL_REG_STR_LEN);
     int8_t isValid;
     for (i = 0; i < z; ++i) {
         isValid = 0;
-        for (j = PAL_REGCODE_TO_ASCII_LUT_LEN; j--; ) {
-            isValid += (str[i] == PAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[j] | str[i] == PAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[j]);
+        for (j = PAL_REG_TO_ASCII_LUT_LEN; j--; ) {
+            isValid += (regString[i] == PAL_REG_UPPER_CODE_TO_ASCII_LUT[j] |
+                        regString[i] == PAL_REG_LOWER_CODE_TO_ASCII_LUT[j]);
         }
         if (isValid) {
-            trimmedRegcodeString[k++] = str[i];
+            trimmedRegString[k++] = regString[i];
         }
-    } trimmedRegcodeString[k] = '\0';
+    } trimmedRegString[k] = '\0';
 }
 
-static inline uint32_t OXLPalConvertASCIIToCode(const char ch)
+static inline uint32_t OXLPalRegConvertASCIIToCode(const char ch)
 {
     uint32_t code = -1;
     uint32_t i;
-    for (i = PAL_REGCODE_TO_ASCII_LUT_LEN; i--; ) {
-        if (PAL_REGCODE_UPPER_CODE_TO_ASCII_LUT[i] == ch || PAL_REGCODE_LOWER_CODE_TO_ASCII_LUT[i] == ch) {
+    for (i = PAL_REG_TO_ASCII_LUT_LEN; i--; ) {
+        if (PAL_REG_UPPER_CODE_TO_ASCII_LUT[i] == ch ||
+            PAL_REG_LOWER_CODE_TO_ASCII_LUT[i] == ch) {
             code = i;
         }
     }
     return code;
 }
 
-void OXLPalStringToRegcode(const char *trimmedRegcodeString, OXLPalReg *regcode)
+void OXLPalRegStringToReg(const char *trimmedRegString, OXLPalReg *reg)
 {
     size_t pos = 0, ocnt = 0, nbits = 64, i = 0;
     int16_t sn = 0, mask = 0x0080;
     int32_t si[2];
     byte *sip = ( byte * )&si;
-    const char *t = trimmedRegcodeString;
+    const char *t = trimmedRegString;
     while (nbits--) {
         if (ocnt == 0) {
-            sn = OXLPalConvertASCIIToCode(t[i++]);
+            sn = OXLPalRegConvertASCIIToCode(t[i++]);
             ocnt = 5;
         }
         if (sn & 0x10) {
@@ -92,12 +94,12 @@ void OXLPalStringToRegcode(const char *trimmedRegcodeString, OXLPalReg *regcode)
             sip[++pos] = 0;
         }
     }
-    regcode->CRC = si[0];
-    regcode->counter = si[1];
+    reg->crc = si[0];
+    reg->counter = si[1];
 }
 
 void OXLPalPrintReg(const OXLPalReg *regcode)
 {
     fprintf(stderr, "regcode->counter: %u\n", regcode->counter);
-    fprintf(stderr, "regcode->CRC: %u\n", regcode->CRC);
+    fprintf(stderr, "regcode->CRC: %u\n", regcode->crc);
 }

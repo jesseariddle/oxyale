@@ -9,9 +9,10 @@
 #ifndef oxyale_oxyale_palclient_h
 #define oxyale_oxyale_palclient_h
 
-typedef struct OXLPalCryptStruct OXLPalCrypt;
-typedef struct OXLPalRoomStruct OXLPalRoom;
-typedef struct OXLPalCallbacksStruct OXLPalCallbacks;
+#include <palcom.h>
+#include <palcrypto.h>
+#include <palroom.h>
+#include <palevent.h>
 
 /*enum PalConnectionStateEnum { */
 /*    c_busy, */ /* Busy; waiting for incoming data or for a write to complete. */
@@ -30,7 +31,7 @@ typedef struct OXLPalClientStruct {
     uint32_t msgID;
     uint32_t msgLen;
     uint32_t msgRef;
-    OXLPalCrypt crypt;
+    OXLPalCrypto crypto;
     uv_tcp_t *conn;
     uv_loop_t *loop;
     /* uv_getaddrinfo_t resolver; */
@@ -43,9 +44,9 @@ typedef struct OXLPalClientStruct {
     char servername[PAL_SERVER_NAME_SZ_CAP];
     char username[PAL_USERNAME_SZ_CAP];
     char wizpass[PAL_WIZ_PASS_SZ_CAP];
-    int32_t PUIDChangedFlag;
-    int32_t PUIDCounter;
-    int32_t PUIDCRC;
+    int32_t puidChangedFlag;
+    int32_t puidCounter;
+    int32_t puidCRC;
     int32_t regCounter;
     int32_t regCRC;
     int32_t serverIsBigEndianFlag;
@@ -55,7 +56,25 @@ typedef struct OXLPalClientStruct {
     int32_t permissions;
     OXLPalPropStore propStore;
     OXLPalUser user;
-    OXLPalCallbacks callbacks;
+    OXLPalEvent event;
 } OXLPalClient;
+
+/* init client */
+/* void oxl_client_init(oxl_client_t *self, uv_loop_t *loop); */
+/* start client */
+void OXLPalClientOpenConnection(OXLPalClient *client,
+                                uv_loop_t *loop,
+                                char *username,
+                                char *wizpass,
+                                char *host,
+                                uint16_t port,
+                                int32_t initialRoom);
+
+void OXLPalClientCloseConnection(OXLPalClient *client);
+
+void OXLPalLeaveRoom(OXLPalClient *client, OXLPalRoom *room);
+void OXLPalJoinRoom(OXLPalClient *client, int32_t gotoRoomID);
+
+void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_cb finishSay);
 
 #endif

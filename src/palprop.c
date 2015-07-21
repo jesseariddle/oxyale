@@ -1,3 +1,3 @@
-#include <common.h>
+#include <palcom.h>
 #include <palprop.h>
 

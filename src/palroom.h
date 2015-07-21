@@ -9,10 +9,33 @@
 #ifndef oxyale_oxyale_palroom_h
 #define oxyale_oxyale_palroom_h
 
-typedef struct OXLPalHotUserStruct OXLPalUser;
-typedef struct OXLPalHotSpotStruct OXLPalHotSpot;
-typedef struct OXLPalPropStruct OXLPalProp;
-typedef struct OXLPalViewStruct OXLPalView;
+#include <paluser.h>
+#include <palhotspot.h>
+#include <palprop.h>
+#include <palview.h>
+
+typedef struct OXLPalRoomMsgStruct {
+    PAL_HEADER_FIELDS
+    int32_t roomFlags;
+    int32_t face;
+    int16_t roomID;
+    int16_t roomNameOffset;
+    int16_t imageNameOffset;
+    int16_t artistNameOffset;
+    int16_t passwordOffset;
+    int16_t hotSpotCount;
+    int16_t hotSpotOffset;
+    int16_t imageCount;
+    int16_t imageOffset;
+    int16_t drawCommandsCount;
+    int16_t firstDrawCommandOffset;
+    int16_t peopleCount;
+    int16_t loosePropCount;
+    int16_t firstLoosePropOffset;
+    int16_t reserved;
+    int16_t dataLen;
+    byte *data;
+} OXLPalRoomMsg;
 
 typedef struct OXLPalRoomStruct {
     int32_t id;
@@ -45,5 +68,22 @@ typedef struct OXLPalRoomStruct {
     char *statusMessage;
     int32_t statusDisappearTimer;
 } OXLPalRoom;
+
+/*
+ uint oxl_net_room_len(const unsigned char *data);
+ short oxl_net_room_data_len(const unsigned char *data);
+ short oxl_net_room_room_name_len(const unsigned char *data);
+ short oxl_net_room_image_name_len(const unsigned char *data);
+ void oxl_net_room_room_name(char *room_name,
+ const oxl_net_room_t *room_msg);
+ 
+ void oxl_net_room_image_name(char *image_name,
+ const oxl_net_room_t *room_msg);
+ */
+
+void OXLPalInitRoom(OXLPalRoom *room);
+void OXLPalFinishSelectedUserChanged(OXLPalUser *user);
+
+void OXLPalMsgToRoom(OXLPalRoom *room, const byte *data, const uint refID);
 
 #endif

@@ -9,6 +9,9 @@
 #ifndef oxyale_paluser_h
 #define oxyale_paluser_h
 
+#include <palcom.h>
+#include <palpropstore.h>
+
 typedef struct OXLPalUserStruct {
     PAL_HEADER_FIELDS
     int32_t id;
