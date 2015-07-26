@@ -9,8 +9,8 @@
 #ifndef oxyale_paluser_h
 #define oxyale_paluser_h
 
-#include <palcom.h>
-#include <palpropstore.h>
+#include "oxlcom.h"
+#include "palpropstore.h"
 
 typedef struct OXLPalUserStruct {
     PAL_HEADER_FIELDS

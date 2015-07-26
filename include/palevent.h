@@ -46,17 +46,17 @@
  */
 
 typedef struct OXLPalEventStruct {
-    void (*PalEventOpenConnnSuccess)(void *data);
-    void (*PalEventOpenConnFail)(void *data);
-    void (*PalEventLogonSuccess)(void *data);
-    void (*PalEventLogonFail)(void *data);
-    void (*PalEventCloseConnSuccess)(void *data);
-    void (*PalEventGotoURLSuccess)(void *data);
-    void (*PalEventRoomChangedSuccess)(void *data);
-    void (*PalEventAuthRequestSuccess)(void *data);
-    void (*PalEventSecurityFail)(void *data);
+    void (*PalEventConnectSuccess)(void *sender);
+    void (*PalEventConnectFail)(void *sender);
+    void (*PalEventLogonSuccess)(void *sender);
+    void (*PalEventLogonFail)(void *sender);
+    void (*PalEventDisconnectSuccess)(void *sender);
+    void (*PalEventGotoURLSuccess)(void *sender);
+    void (*PalEventRoomChangeSuccess)(void *sender);
+    void (*PalEventAuthRequestSuccess)(void *sender);
+    void (*PalEventSecurityFail)(void *sender);
     
-    void (*PalEventServerInfo)(void *data);
+    void (*PalEventServerInfo)(void *sender);
     
 } OXLPalEvent;
 

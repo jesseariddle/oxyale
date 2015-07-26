@@ -10,7 +10,7 @@
 #include <palclient.h>
 #include <palgotoroom.h>
 
-void OXLPalInitGotoRoomCmd(OXLPalGotoRoomCmd *gotoRoomCmd, uint userID, short roomID)
+void OXLPalGotoRoomCmdInit(OXLPalGotoRoomCmd *gotoRoomCmd, uint userID, short roomID)
 {
     gotoRoomCmd->msgID = PAL_TX_GOTO_ROOM_CMD;
     gotoRoomCmd->msgLen = sizeof(short);

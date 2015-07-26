@@ -19,7 +19,7 @@
 
 #include <libuv/uv.h>
 
-#include "palcom.h"
+#include "oxlcom.h"
 #include "palroom.h"
 #include "palreg.h"
 #include "palcrypto.h"

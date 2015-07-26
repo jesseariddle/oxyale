@@ -11,28 +11,28 @@
 void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
                         char *username,
                         char *wizpass,
-                        int initialRoomID,
-                        uint regCRC,
-                        int regCounter,
-                        uint PUIDCRC,
-                        int PUIDCounter)
+                        uint32_t initialRoomID,
+                        uint32_t regCRC,
+                        uint32_t regCounter,
+                        uint16_t puidCRC,
+                        uint32_t puidCounter)
 {
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)buf->base; */
-    fprintf(stderr, "--- DEBUG: InitPalLogonCmd\n");
+    OXLLog("PalLogonCmdInit");
     logonCmd->msgID = PAL_TX_LOGON_CMD;
     logonCmd->msgLen = 0x80;
     logonCmd->msgRef = 0;
     logonCmd->regCRC = regCRC;
     logonCmd->regCounter = regCounter;
-    logonCmd->usernameLen = (byte)strlen(username);
+    logonCmd->usernameLen = (uint8_t)strlen(username);
     strncpy(logonCmd->username, username, PAL_USERNAME_SZ_CAP);
     strncpy(logonCmd->wizpass, wizpass, PAL_WIZ_PASS_SZ_CAP);
     
     /* raw */
     logonCmd->flags = PAL_AUXFLAGS_AUTHENTICATE | PAL_AUXFLAGS_WIN32;
     
-    logonCmd->puidCounter = PUIDCounter;
-    logonCmd->puidCRC = PUIDCRC;
+    logonCmd->puidCounter = puidCounter;
+    logonCmd->puidCRC = puidCRC;
     logonCmd->demoElapsed = 0;
     logonCmd->totalElapsed = 0;
     logonCmd->demoLimit = 0;
@@ -53,9 +53,7 @@ void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
     
     /* TODO download capabilities plox */
     logonCmd->ulDownloadCapabilities =
-    PAL_DLCAPS_ASSETS_PALACE |
-    PAL_DLCAPS_FILES_PALACE |
-    PAL_DLCAPS_FILES_HTTPSRVR;
+        PAL_DLCAPS_ASSETS_PALACE | PAL_DLCAPS_FILES_PALACE | PAL_DLCAPS_FILES_HTTPSRVR;
     
     /* unused */
     logonCmd->ul2DEngineCapabilities = 0;
@@ -67,47 +65,68 @@ void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
     logonCmd->ul3DEngineCapabilities = 0;
 }
 
+OXLPalLogonCmd *OXLPalLogonCmdCreate(char *username,
+                                     char *wizpass,
+                                     uint32_t initialRoomID,
+                                     uint32_t regCRC,
+                                     uint32_t regCounter,
+                                     uint16_t puidCRC,
+                                     uint32_t puidCounter)
+{
+    OXLLog("PalLogonCmdCreate");
+    OXLPalLogonCmd *logonCmd = OXLAlloc(sizeof(*logonCmd));
+    OXLPalLogonCmdInit(logonCmd,
+                       username,
+                       wizpass,
+                       initialRoomID,
+                       regCRC,
+                       regCounter,
+                       puidCRC,
+                       puidCounter);
+    return logonCmd;
+}
+
 void OXLPalLogonCmdDump(const OXLPalLogonCmd *logonCmd)
 {
+    OXLLog("PalLogonCmdDump");
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
     /* raw */
-    fprintf(stderr, "logonCmd->msgID = 0x%x\n", logonCmd->msgID);
-    fprintf(stderr, "logonCmd->msgSize = %d\n", logonCmd->msgLen);
-    fprintf(stderr, "logonCmd->msgRef = 0x%x\n", logonCmd->msgRef);
-    fprintf(stderr, "logonCmd->regCRC = 0x%x\n", logonCmd->regCRC);
-    fprintf(stderr, "logonCmd->regCounter = 0x%x\n", logonCmd->regCounter);
-    fprintf(stderr, "logonCmd->usernameLen = %d\n", logonCmd->usernameLen);
-    fprintf(stderr, "logonCmd->username = %s\n", logonCmd->username);
-    fprintf(stderr, "logonCmd->flags = 0x%x\n", logonCmd->flags);
-    fprintf(stderr, "logonCmd->puidCounter = 0x%x\n", logonCmd->puidCounter);
-    fprintf(stderr, "logonCmd->puidCRC = 0x%x\n", logonCmd->puidCRC);
-    fprintf(stderr, "logonCmd->demoElapsed = 0x%x\n", logonCmd->demoElapsed);
-    fprintf(stderr, "logonCmd->totalElapsed = 0x%x\n", logonCmd->totalElapsed);
-    fprintf(stderr, "logonCmd->demoLimit = 0x%x\n", logonCmd->demoLimit);
+    OXLLog("logonCmd->msgID = 0x%x", logonCmd->msgID);
+    OXLLog("logonCmd->msgSize = %d", logonCmd->msgLen);
+    OXLLog("logonCmd->msgRef = 0x%x", logonCmd->msgRef);
+    OXLLog("logonCmd->regCRC = 0x%x", logonCmd->regCRC);
+    OXLLog("logonCmd->regCounter = 0x%x", logonCmd->regCounter);
+    OXLLog("logonCmd->usernameLen = %d", logonCmd->usernameLen);
+    OXLLog("logonCmd->username = %s", logonCmd->username);
+    OXLLog("logonCmd->flags = 0x%x", logonCmd->flags);
+    OXLLog("logonCmd->puidCounter = 0x%x", logonCmd->puidCounter);
+    OXLLog("logonCmd->puidCRC = 0x%x", logonCmd->puidCRC);
+    OXLLog("logonCmd->demoElapsed = 0x%x", logonCmd->demoElapsed);
+    OXLLog("logonCmd->totalElapsed = 0x%x", logonCmd->totalElapsed);
+    OXLLog("logonCmd->demoLimit = 0x%x", logonCmd->demoLimit);
     
     /* initial room */
-    fprintf(stderr, "logonCmd->roomID = %d\n", logonCmd->initialRoomID);
+    OXLLog("logonCmd->roomID = %d", logonCmd->initialRoomID);
     
     /* does nothing, but is logged by server */
-    fprintf(stderr, "logonCmd->reserved = %s\n", logonCmd->reserved);
+    OXLLog("logonCmd->reserved = %s", logonCmd->reserved);
     
     /* ignored on server */
-    fprintf(stderr,
-            "logonCmd->ulUploadRequestedProtocolVersion = 0x%x\n",
-            logonCmd->ulUploadRequestedProtocolVersion);
+    OXLLog("logonCmd->ulUploadRequestedProtocolVersion = 0x%x",
+           logonCmd->ulUploadRequestedProtocolVersion);
     
     /* TODO upload capabilities plox */
-    fprintf(stderr, "logonCmd->ulUploadCapabilities = 0x%x\n", logonCmd->ulUploadCapabilities);
+    OXLLog("logonCmd->ulUploadCapabilities = 0x%x", logonCmd->ulUploadCapabilities);
     
     /* TODO download capabilities plox */
-    fprintf(stderr, "logonCmd->ulDownloadCapabilities = 0x%x\n", logonCmd->ulDownloadCapabilities);
+    OXLLog("logonCmd->ulDownloadCapabilities = 0x%x", logonCmd->ulDownloadCapabilities);
     
     /* unused */
-    fprintf(stderr, "logonCmd->ul2DEngineCapabilities = 0x%x\n", logonCmd->ul2DEngineCapabilities);
+    OXLLog("logonCmd->ul2DEngineCapabilities = 0x%x", logonCmd->ul2DEngineCapabilities);
     
     /* unused */
-    fprintf(stderr, "logonCmd->ul2DGraphicsCapabilities = 0x%x\n", logonCmd->ul2DGraphicsCapabilities);
+    OXLLog("logonCmd->ul2DGraphicsCapabilities = 0x%x", logonCmd->ul2DGraphicsCapabilities);
     
     /* unused */
-    fprintf(stderr, "logonCmd->ul3DEngineCapabilities = 0x%x\n", logonCmd->ul3DEngineCapabilities);
+    OXLLog("logonCmd->ul3DEngineCapabilities = 0x%x", logonCmd->ul3DEngineCapabilities);
 }

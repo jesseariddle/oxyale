@@ -9,9 +9,6 @@
 #ifndef oxyale_paldefs_h
 #define oxyale_paldefs_h
 
-#define              PAL_INET_PORT_SZ_CAP 6
-#define              PAL_INET_ADDR_SZ_CAP 16
-#define         PAL_INET6_MAX_ADDR_SZ_CAP 46
 #define             PAL_INET_DEFAULT_PORT 9998
 #define                PAL_NET_HEADER_LEN 12
 

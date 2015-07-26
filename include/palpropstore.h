@@ -9,7 +9,7 @@
 #ifndef oxyale_palpropstore_h
 #define oxyale_palpropstore_h
 
-#include <palprop.h>
+#include "palprop.h"
 
 typedef struct OXLPalPropStoreStruct {
     /* stub */

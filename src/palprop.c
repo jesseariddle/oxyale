@@ -1,3 +1,3 @@
-#include <palcom.h>
+#include <oxlcom.h>
 #include <palprop.h>
 

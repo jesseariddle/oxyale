@@ -6,8 +6,8 @@
 //  Copyright (c) 2015 Riddle Software. All rights reserved.
 //
 
-#ifndef oxyale_oxyale_palroom_h
-#define oxyale_oxyale_palroom_h
+#ifndef oxyale_palroom_h
+#define oxyale_palroom_h
 
 #include "paluser.h"
 #include "palhotspot.h"

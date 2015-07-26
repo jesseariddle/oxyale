@@ -9,7 +9,7 @@
 #ifndef oxyale_pallogon_h
 #define oxyale_pallogon_h
 
-#include <palcom.h>
+#include <oxlcom.h>
 
 #define PAL_USERNAME_SZ_CAP 31
 #define PAL_WIZ_PASS_SZ_CAP 32
@@ -42,7 +42,7 @@ typedef struct OXLPalLogonCmdStruct {
     int32_t ul3DEngineCapabilities;
 } OXLPalLogonCmd;
 
-void OXLPalInitLogonCmd(OXLPalLogonCmd *logonCmd,
+void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
                         char *username,
                         char *wizpass,
                         uint32_t initialRoomID,
@@ -51,16 +51,15 @@ void OXLPalInitLogonCmd(OXLPalLogonCmd *logonCmd,
                         uint16_t puidCRC,
                         uint32_t puidCounter);
 
-OXLPalLogonCmd *OXLPalMakeLogonCmd(char *username,
-                                   char *wizpass,
-                                   uint32_t initialRoomID,
-                                   uint32_t regCRC,
-                                   uint32_t regCounter,
-                                   uint16_t puidCRC,
-                                   uint32_t puidCounter);
+OXLPalLogonCmd *OXLPalLogonCmdCreate(char *username,
+                                     char *wizpass,
+                                     uint32_t initialRoomID,
+                                     uint32_t regCRC,
+                                     uint32_t regCounter,
+                                     uint16_t puidCRC,
+                                     uint32_t puidCounter);
 
-void OXLPalFreeLogonCmd(OXLPalLogonCmd logonCmd);
-
-void OXLPalDumpLogonCmd(const OXLPalLogonCmd *logonCmd);
+void OXLPalLogonCmdFree(OXLPalLogonCmd logonCmd);
+void OXLPalLogonCmdDump(const OXLPalLogonCmd *logonCmd);
 
 #endif

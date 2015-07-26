@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Riddle Software. All rights reserved.
 //
 
-#include <palcom.h>
+#include <oxlcom.h>
 #include <palclient.h>
 #include <palroom.h>
 

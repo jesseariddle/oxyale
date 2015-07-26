@@ -15,6 +15,8 @@ typedef struct OXLPalCryptoStruct {
 } OXLPalCrypto;
 
 void OXLPalCryptoInit(OXLPalCrypto *crypto);
+OXLPalCrypto *OXLPalCryptoCreate();
+void OXLPalCryptoDestroy(OXLPalCrypto *crypto);
 void OXLPalCryptoEncrypt(const OXLPalCrypto crypto, const char *plainText, char *cipherText);
 void OXLPalCryptoDecrypt(const OXLPalCrypto crypto, const char *cipherText, char *plainText);
 

@@ -6,13 +6,13 @@
 //  Copyright (c) 2015 Riddle Software. All rights reserved.
 //
 
-#ifndef oxyale_oxyale_palclient_h
-#define oxyale_oxyale_palclient_h
+#ifndef oxyale_palclient_h
+#define oxyale_palclient_h
 
-#include <palcom.h>
-#include <palcrypto.h>
-#include <palroom.h>
-#include <palevent.h>
+#include "oxlcom.h"
+#include "palcrypto.h"
+#include "palroom.h"
+#include "palevent.h"
 
 /*enum PalConnectionStateEnum { */
 /*    c_busy, */ /* Busy; waiting for incoming data or for a write to complete. */
@@ -51,7 +51,7 @@ typedef struct OXLPalClientStruct {
     int32_t regCRC;
     int32_t serverIsBigEndianFlag;
     int32_t waitingForMore;
-    OXLPalRoom room;
+    OXLPalRoom currentRoom;
     int32_t serverVersion;
     int32_t permissions;
     OXLPalPropStore propStore;
@@ -59,22 +59,18 @@ typedef struct OXLPalClientStruct {
     OXLPalEvent event;
 } OXLPalClient;
 
-/* init client */
-/* void oxl_client_init(oxl_client_t *self, uv_loop_t *loop); */
-/* start client */
-void OXLPalClientOpenConnection(OXLPalClient *client,
-                                uv_loop_t *loop,
-                                char *username,
-                                char *wizpass,
-                                char *host,
-                                uint16_t port,
-                                int32_t initialRoom);
-
-void OXLPalClientCloseConnection(OXLPalClient *client);
-
+OXLPalClient *OXLPalClientCreate();
+void OXLPalClientDestroy(OXLPalClient *client);
+void OXLPalClientConnect(OXLPalClient *client,
+                         const char *username,
+                         const char *wizpass,
+                         const char *host,
+                         const uint16_t port,
+                         const int32_t initialRoom);
+void OXLPalClientDisconnect(OXLPalClient *client);
+void OXLPalClientFinishResolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
 void OXLPalLeaveRoom(OXLPalClient *client, OXLPalRoom *room);
 void OXLPalJoinRoom(OXLPalClient *client, int32_t gotoRoomID);
-
 void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_cb finishSay);
 
 #endif
