@@ -28,7 +28,7 @@ int16_t OXLPalCryptoRandomInt16(OXLPalCrypto *crypto, const int16_t max)
     return (int16_t)(OXLPalCryptoRandomDouble(crypto) * (double)max);
 }
 
-void OXLPalCryptoInit(OXLPalCrypto *crypto)
+void OXLInitPalCrypto(OXLPalCrypto *crypto)
 {
     size_t i;
     OXLPalCryptoSeedRandom(crypto, 0xa2c2a);
@@ -58,13 +58,13 @@ void OXLPalCryptoDecrypt(const OXLPalCrypto crypto, const char *cipherText, char
     } plainText[len] = '\0';
 }
 
-OXLPalCrypto *OXLPalCryptoCreate()
+OXLPalCrypto *OXLMakePalCrypto()
 {
     OXLPalCrypto *crypto = malloc(sizeof(*crypto));
     return crypto;
 }
 
-void OXLPalCryptoDestroy(OXLPalCrypto *crypto)
+void OXLReleasePalCrypto(OXLPalCrypto *crypto)
 {
     free(crypto);
 }

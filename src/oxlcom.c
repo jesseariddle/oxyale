@@ -38,8 +38,14 @@ int OXLProcessEvents()
     return uv_run(uv_default_loop(), UV_RUN_NOWAIT);
 }
 
-void *OXLAlloc(size_t size) {
+void *OXLAlloc(size_t size)
+{
     return malloc(size); /* could adopt a different memory strategy here */
+}
+
+void OXLRelease(void *mem)
+{
+    free(mem); /* could adopt a different memory strategy here */
 }
 
 void OXLLog(const char *fmt, ...) {
@@ -56,12 +62,12 @@ void OXLInt2Str(int n, char *str, int len) {
 }
 
 
-void OXLBufAlloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
+void OXLAllocBuf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
     *buf = uv_buf_init(malloc(suggested_size), (uint)suggested_size);
 }
 
-void OXLBufDumpWithSize(const uv_buf_t buf, size_t size)
+void OXLDumpBufWithSize(const uv_buf_t buf, size_t size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -107,12 +113,12 @@ void OXLBufDumpWithSize(const uv_buf_t buf, size_t size)
     }
 }
 
-void OXLBufDump(const uv_buf_t buf)
+void OXLDumpBuf(const uv_buf_t buf)
 {
-    OXLBufDumpWithSize(buf, buf.len);
+    OXLDumpBufWithSize(buf, buf.len);
 }
 
-void OXLBufPtrDump(uv_buf_t *buf, size_t size)
+void OXLDumpBufPtr(uv_buf_t *buf, size_t size)
 {
     const int ndigits = 16;
     const int nseg = 8;
@@ -158,7 +164,7 @@ void OXLBufPtrDump(uv_buf_t *buf, size_t size)
     }
 }
 
-void OXLWriteReqDestroy(OXLWriteReq *wr)
+void OXLReleaseWriteReq(OXLWriteReq *wr)
 {
     OXLLog("OXLWriteReqDestroy");
     if (wr) {
@@ -169,7 +175,7 @@ void OXLWriteReqDestroy(OXLWriteReq *wr)
     }
 }
 
-void OXLBufWrite(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback)
+void OXLWriteBuf(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback)
 {
     fprintf(stderr, "--- DEBUG: WritePalBuf\n");
     OXLWriteReq *req = malloc(sizeof(*req));

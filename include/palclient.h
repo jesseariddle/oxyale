@@ -59,8 +59,9 @@ typedef struct OXLPalClientStruct {
     OXLPalEvent event;
 } OXLPalClient;
 
-OXLPalClient *OXLPalClientCreate();
-void OXLPalClientDestroy(OXLPalClient *client);
+OXLPalClient *OXLMakePalClient();
+void OXLReleasePalClient(OXLPalClient *client);
+
 void OXLPalClientConnect(OXLPalClient *client,
                          const char *username,
                          const char *wizpass,

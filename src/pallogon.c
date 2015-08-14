@@ -8,7 +8,7 @@
 
 #include <pallogon.h>
 
-void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
+void OXLInitPalLogonCmd(OXLPalLogonCmd *logonCmd,
                         char *username,
                         char *wizpass,
                         uint32_t initialRoomID,
@@ -65,17 +65,17 @@ void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
     logonCmd->ul3DEngineCapabilities = 0;
 }
 
-OXLPalLogonCmd *OXLPalLogonCmdCreate(char *username,
-                                     char *wizpass,
-                                     uint32_t initialRoomID,
-                                     uint32_t regCRC,
-                                     uint32_t regCounter,
-                                     uint16_t puidCRC,
-                                     uint32_t puidCounter)
+OXLPalLogonCmd *OXLMakePalLogonCmd(char *username,
+                                   char *wizpass,
+                                   uint32_t initialRoomID,
+                                   uint32_t regCRC,
+                                   uint32_t regCounter,
+                                   uint16_t puidCRC,
+                                   uint32_t puidCounter)
 {
     OXLLog("PalLogonCmdCreate");
     OXLPalLogonCmd *logonCmd = OXLAlloc(sizeof(*logonCmd));
-    OXLPalLogonCmdInit(logonCmd,
+    OXLInitPalLogonCmd(logonCmd,
                        username,
                        wizpass,
                        initialRoomID,
@@ -86,7 +86,7 @@ OXLPalLogonCmd *OXLPalLogonCmdCreate(char *username,
     return logonCmd;
 }
 
-void OXLPalLogonCmdDump(const OXLPalLogonCmd *logonCmd)
+void OXLDumpPalLogonCmd(const OXLPalLogonCmd *logonCmd)
 {
     OXLLog("PalLogonCmdDump");
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
@@ -129,4 +129,9 @@ void OXLPalLogonCmdDump(const OXLPalLogonCmd *logonCmd)
     
     /* unused */
     OXLLog("logonCmd->ul3DEngineCapabilities = 0x%x", logonCmd->ul3DEngineCapabilities);
+}
+
+void OXLReleasePalLogonCmd(OXLPalLogonCmd *logonCmd)
+{
+    OXLRelease(logonCmd);
 }

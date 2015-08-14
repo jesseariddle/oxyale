@@ -49,14 +49,14 @@ void OXLPalClientFinishLogon(uv_write_t *req, int32_t status)
         OXLLog("ERROR. Logon write failure. STATE_DISCONNECTED is now true.");
         client->state = STATE_DISCONNECTED;
         /* uv_close((uv_handle_t *)client->conn, NULL); */
-        OXLWriteReqDestroy(wr);
+        OXLReleaseWriteReq(wr);
         client->event.PalEventLogonFail(client);
     }
     else if (0 <= status) {
         fprintf(stderr, "--- DEBUG: \n");
         OXLLog("Logon write successful. STATE_CONNECTED is now true.");
         client->state = STATE_CONNECTED;
-        OXLWriteReqDestroy(wr);
+        OXLReleaseWriteReq(wr);
         client->event.PalEventLogonSuccess(client);
     }
 }
@@ -68,13 +68,13 @@ void OXLPalClientLogon(OXLPalClient *client, uint32_t size, uint32_t refID)
     client->currentRoom.userID = refID;
     OXLLog("client->currentRoom.userID = 0x%x;", refID);
     
-    OXLPalLogonCmd *logonCmd = OXLPalLogonCmdCreate(client->username,
-                                                    client->wizpass,
-                                                    client->roomID,
-                                                    client->regCRC,
-                                                    client->regCounter,
-                                                    client->puidCRC,
-                                                    client->puidCounter);
+    OXLPalLogonCmd *logonCmd = OXLMakePalLogonCmd(client->username,
+                                                  client->wizpass,
+                                                  client->roomID,
+                                                  client->regCRC,
+                                                  client->regCounter,
+                                                  client->puidCRC,
+                                                  client->puidCounter);
     OXLLog("Allocated logonCmd");
     
     OXLWriteReq *logonCmdWR = malloc(sizeof(*logonCmdWR));
@@ -102,11 +102,11 @@ void OXLPalClientLogon(OXLPalClient *client, uint32_t size, uint32_t refID)
                        client->puidCounter);
     */
     
-    OXLLog("Before LogonCmdDump");
-    OXLPalLogonCmdDump((OXLPalLogonCmd *)logonCmdWR->buf.base);
-    OXLLog("After LogonCmdDump");
+    OXLLog("Before DumpPalLogonCmd");
+    OXLDumpPalLogonCmd((OXLPalLogonCmd *)logonCmdWR->buf.base);
+    OXLLog("After DumpPalLogonCmd");
     
-    OXLBufDumpWithSize(logonCmdWR->buf, sizeof(OXLPalLogonCmd));
+    OXLDumpBufWithSize(logonCmdWR->buf, sizeof(OXLPalLogonCmd));
     /*
      fprintf(stderr,
      "--- DEBUG: logon("
@@ -131,7 +131,7 @@ void OXLPalClientLogon(OXLPalClient *client, uint32_t size, uint32_t refID)
     
     OXLLog("Will write the following:");
     /* OXLBufDump(logonCmdWR->buf, z);*/
-    OXLBufDumpWithSize(logonCmdWR->buf, sizeof(OXLPalLogonCmd));
+    OXLDumpBufWithSize(logonCmdWR->buf, sizeof(OXLPalLogonCmd));
     
     /* DumpPalBufPtr((uv_buf_t *)logonMsg->buf, z); */
     
@@ -304,10 +304,14 @@ void OXLPalClientHandleMaxUsersLoggedOn(OXLPalClient *client, uint32_t msgLen, u
     /* TODO emit user logged on and max received event signal */
 }
 
-void OXLPalClientHandleXTalk(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef)
+void OXLPalClientHandleXTalk(OXLPalClient *client, uint32_t msgLen, uint32_t msgRef, const uv_buf_t *buf)
 {
-    
-    /* client->event.PalEventXTalk(client, msg); */
+    char *cipherText = buf->base;
+    char *plainText = OXLAlloc(strnlen(buf->base, OXL_MAX_STR_SZ_CAP)); /* buf->len? */
+    OXLPalCryptoDecrypt(client->crypto, cipherText, plainText);
+    OXLLog("plainText: %s", plainText);
+    client->event.PalEventXTalk(client, plainText);
+    OXLRelease(plainText);
 }
 
 void OXLPalClientFinishDisconnect(uv_handle_t *handle)
@@ -348,7 +352,7 @@ void OXLPalClientFinishReadData(uv_stream_t *stream, ssize_t nread, const uv_buf
         OXLLog("Successfully read %ld bytes of data", nread);
         
         OXLLog("Read the following:");
-        OXLBufDumpWithSize(*buf, nread);
+        OXLDumpBufWithSize(*buf, nread);
         
         if (client->state == STATE_HANDSHAKING) {
             OXLLog("STATE_HANDSHAKING is true. Performing handshake.");
@@ -558,7 +562,7 @@ void OXLPalClientFinishConnect(uv_connect_t *conn, int32_t status)
         OXLLog("Connected successfully.");
         client->state = STATE_HANDSHAKING;
         conn->handle->data = client;
-        uv_read_start(conn->handle, OXLBufAlloc, OXLPalClientFinishReadData);
+        uv_read_start(conn->handle, OXLAllocBuf, OXLPalClientFinishReadData);
     }
     
     client->event.PalEventConnectSuccess(client);
@@ -608,7 +612,7 @@ void OXLPalClientFinishWrite(uv_write_t *req, int status)
     free(wr);
 }
 
-OXLPalClient *OXLPalClientCreate()
+OXLPalClient *OXLMakePalClient()
 {
     OXLPalClient *client = malloc(sizeof(*client));
     
@@ -634,7 +638,7 @@ OXLPalClient *OXLPalClientCreate()
     return client;
 }
 
-void OXLPalClientDestroy(OXLPalClient *client)
+void OXLReleasePalClient(OXLPalClient *client)
 {
     /* OXLPalCryptoDestroy(&client->crypto); */
     OXLPalClientDisconnect(client);
@@ -727,7 +731,7 @@ void OXLPalClientJoinRoom(OXLPalClient *client, int32_t gotoRoomID)
     OXLLog("");
     OXLLog("Will write the following:");
     /* OXLBufDump(logonCmd->buf, z);*/
-    OXLBufDump(logonCmd->buf);
+    OXLDumpBuf(logonCmd->buf);
     
     OXLLog("Calling uv_write");
     uv_write((uv_write_t *)logonCmd, (uv_stream_t *)client->conn, &logonCmd->buf, 1, OXLPalClientFinishJoinRoom);
@@ -754,7 +758,7 @@ void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_c
     OXLLog("OXLPalSay");
     OXLLog("Received buf from app:");
     /* OXLBufDump(buf, size); */
-    OXLBufDump(buf);
+    OXLDumpBuf(buf);
     
     /* OXLWriteReq *wr = OXLMakeWriteReq(client); */
     /* OXLSayBubble *bubble = OXLMakeSayBubble(client) */
@@ -774,7 +778,7 @@ void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_c
     
     OXLLog("Preparing to send the following ciphertext:");
     /* OXLBufDump(wr->buf, size); */
-    OXLBufDump(wr->buf);
+    OXLDumpBuf(wr->buf);
     //uv_write((uv_stream_t *)client->conn, size, wr->buf, finishWrite);
 }
 

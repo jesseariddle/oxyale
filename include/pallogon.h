@@ -42,7 +42,7 @@ typedef struct OXLPalLogonCmdStruct {
     int32_t ul3DEngineCapabilities;
 } OXLPalLogonCmd;
 
-void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
+void OXLInitPalLogonCmd(OXLPalLogonCmd *logonCmd,
                         char *username,
                         char *wizpass,
                         uint32_t initialRoomID,
@@ -51,15 +51,15 @@ void OXLPalLogonCmdInit(OXLPalLogonCmd *logonCmd,
                         uint16_t puidCRC,
                         uint32_t puidCounter);
 
-OXLPalLogonCmd *OXLPalLogonCmdCreate(char *username,
-                                     char *wizpass,
-                                     uint32_t initialRoomID,
-                                     uint32_t regCRC,
-                                     uint32_t regCounter,
-                                     uint16_t puidCRC,
-                                     uint32_t puidCounter);
+OXLPalLogonCmd *OXLMakePalLogonCmd(char *username,
+                                   char *wizpass,
+                                   uint32_t initialRoomID,
+                                   uint32_t regCRC,
+                                   uint32_t regCounter,
+                                   uint16_t puidCRC,
+                                   uint32_t puidCounter);
 
-void OXLPalLogonCmdFree(OXLPalLogonCmd logonCmd);
-void OXLPalLogonCmdDump(const OXLPalLogonCmd *logonCmd);
+void OXLReleasePalLogonCmd(OXLPalLogonCmd *logonCmd);
+void OXLDumpPalLogonCmd(const OXLPalLogonCmd *logonCmd);
 
 #endif

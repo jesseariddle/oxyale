@@ -55,8 +55,8 @@ typedef struct OXLPalEventStruct {
     void (*PalEventRoomChangeSuccess)(void *sender);
     void (*PalEventAuthRequestSuccess)(void *sender);
     void (*PalEventSecurityFail)(void *sender);
-    
     void (*PalEventServerInfo)(void *sender);
+    void (*PalEventXTalk)(void *sender, const char *message);
     
 } OXLPalEvent;
 

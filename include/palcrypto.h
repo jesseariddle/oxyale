@@ -14,9 +14,9 @@ typedef struct OXLPalCryptoStruct {
     int8_t lut[PAL_CRYPTO_LUT_LEN];
 } OXLPalCrypto;
 
-void OXLPalCryptoInit(OXLPalCrypto *crypto);
-OXLPalCrypto *OXLPalCryptoCreate();
-void OXLPalCryptoDestroy(OXLPalCrypto *crypto);
+void OXLInitPalCrypto(OXLPalCrypto *crypto);
+OXLPalCrypto *OXLMakePalCrypto();
+void OXLReleasePalCrypto(OXLPalCrypto *crypto);
 void OXLPalCryptoEncrypt(const OXLPalCrypto crypto, const char *plainText, char *cipherText);
 void OXLPalCryptoDecrypt(const OXLPalCrypto crypto, const char *cipherText, char *plainText);
 

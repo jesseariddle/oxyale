@@ -36,10 +36,11 @@ void OXLLog(const char *fmt, ...);
 int OXLProcessEvents();
 void OXLInt2Str(int n, char *str, int len);
 void *OXLAlloc(size_t size);
-void OXLBufAlloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-void OXLBufDumpWithSize(const uv_buf_t buf, size_t size);
-void OXLBufDump(const uv_buf_t buf);
-void OXLWriteReqDestroy(OXLWriteReq *req);
+void OXLRelease(void *mem);
+void OXLAllocBuf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
+void OXLDumpBufWithSize(const uv_buf_t buf, size_t size);
+void OXLDumpBuf(const uv_buf_t buf);
+void OXLReleaseWriteReq(OXLWriteReq *req);
 void OXLWriteData(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback);
 
 /* don't export */
