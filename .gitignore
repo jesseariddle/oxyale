@@ -22,9 +22,12 @@
 *.x86_64
 *.hex
 
+
 # Others
 .DS_Store
+/tmp/
 run-tests
+test
 *.dSYM
 *.xcodeproj
 oxyale
