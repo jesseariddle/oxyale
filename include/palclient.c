@@ -330,7 +330,7 @@ void OXLPalClientDisconnect(OXLPalClient *client)
 }
 
 /* uv_read_cb */
-void OXLPalClientFinishReadData(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void OXLPalClientFinishRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     uint32_t msgID = 0;
     uint32_t msgLen;
@@ -559,10 +559,10 @@ void OXLPalClientFinishConnect(uv_connect_t *conn, int32_t status)
         client->event.PalEventConnectFail(client);
     }
     else {
-        OXLLog("Connected successfully.");
+        OXLLog("Connected successfully to %s", client->servername);
         client->state = STATE_HANDSHAKING;
         conn->handle->data = client;
-        uv_read_start(conn->handle, OXLAllocBuf, OXLPalClientFinishReadData);
+        uv_read_start(conn->handle, OXLAllocBuf, OXLPalClientFinishRead);
     }
     
     client->event.PalEventConnectSuccess(client);
@@ -608,8 +608,7 @@ void OXLPalClientFinishWrite(uv_write_t *req, int status)
         OXLLog("Wrote %s", req->data);
     }
     
-    free(wr->buf.base);
-    free(wr);
+    OXLReleaseWriteReq(wr);
 }
 
 OXLPalClient *OXLMakePalClient()
@@ -787,3 +786,19 @@ void OXLSetPalUsername(OXLPalClient *client, char *username)
     strlcpy(client->username, username, PAL_USERNAME_SZ_CAP);
 }
 
+/* uv_write_cb */
+void OXLPalClientFinishSend(uv_write_t *req, int status) {
+    OXLLog("... Command Sent");
+    OXLPalClientFinishWrite(req, status);
+}
+
+void OXLPalClientSendAndRelease(OXLPalClient *client, OXLBuf *buf)
+{
+    OXLLog("Sending Palace Command...");
+    uv_buf_t uvbuf = uv_buf_init(buf->base, buf->len);
+    OXLDumpBuf(uvbuf);
+    OXLWriteReq *wr = OXLAlloc(sizeof(*wr));
+    wr->req.data = client;
+    
+    OXLWriteBuf((uv_stream_t *)client->conn, buf, OXLPalClientFinishSend);
+}

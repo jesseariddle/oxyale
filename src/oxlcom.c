@@ -80,35 +80,26 @@ void OXLDumpBufWithSize(const uv_buf_t buf, size_t size)
         for (i = 0; i < ndigits; ++i) {
             if (i % nseg == 0 && 0 < i && c0 < size) {
                 fprintf(stderr, " %02x ", buf.base[c0] & 0xff);
-            }
-            else if (size <= c0) {
+            } else if (size <= c0) {
                 fprintf(stderr, "   ");
-            }
-            else {
+            } else {
                 fprintf(stderr, "%02x ", buf.base[c0] & 0xff);
             }
-            
             ++c0;
         }
-        
         for (i = 0; i < ndigits; ++i) {
             if (i % nseg == 0 && 0 < i && c1 < size) {
                 fprintf(stderr, " ");
             }
-
             if (' ' <= buf.base[c1] && buf.base[c1] <= '~') {
                 fprintf(stderr, "%c", buf.base[c1] & 0xff);
-            }
-            else if (size <= c1) {
+            } else if (size <= c1) {
                 fprintf(stderr, " ");
-            }
-            else {
+            } else {
                 fprintf(stderr, ".");
             }
-            
             ++c1;
         }
-        
         fprintf(stderr, "\n");
     }
 }
@@ -131,17 +122,14 @@ void OXLDumpBufPtr(uv_buf_t *buf, size_t size)
         for (i = 0; i < ndigits; ++i) {
             if (i % nseg == 0 && 0 < i && c0 < size) {
                 fprintf(stderr, " %02x ", buf->base[c0] & 0xff);
-            }
-            else if (size <= c0) {
+            } else if (size <= c0) {
                 fprintf(stderr, "   ");
-            }
-            else {
+            } else {
                 fprintf(stderr, "%02x ", buf->base[c0] & 0xff);
             }
             
             ++c0;
         }
-        
         for (i = 0; i < ndigits; ++i) {
             if (i % nseg == 0 && 0 < i && c1 < size) {
                 fprintf(stderr, " ");
@@ -149,24 +137,21 @@ void OXLDumpBufPtr(uv_buf_t *buf, size_t size)
 
             if (' ' <= buf->base[c1] && buf->base[c1] <= '~') {
                 fprintf(stderr, "%c", buf->base[c1] & 0xff);
-            }
-            else if (size <= c1) {
+            } else if (size <= c1) {
                 fprintf(stderr, " ");
-            }
-            else {
+            } else {
                 fprintf(stderr, ".");
             }
             
             ++c1;
         }
-        
         fprintf(stderr, "\n");
     }
 }
 
 void OXLReleaseWriteReq(OXLWriteReq *wr)
 {
-    OXLLog("OXLWriteReqDestroy");
+    OXLLog("OXLReleaseWriteReq");
     if (wr) {
         if (wr->buf.base) {
             free(wr->buf.base);
@@ -175,12 +160,12 @@ void OXLReleaseWriteReq(OXLWriteReq *wr)
     }
 }
 
-void OXLWriteBuf(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback)
+void OXLWriteBuf(uv_stream_t *dest, OXLBuf buf, uv_write_cb callback)
 {
-    fprintf(stderr, "--- DEBUG: WritePalBuf\n");
+    OXLLog("OXLWriteBuf");
     OXLWriteReq *req = malloc(sizeof(*req));
-    req->buf = uv_buf_init(malloc(size), (uint32_t)size);
-    memcpy(req->buf.base, buf.base, size);
-    fprintf(stderr, "--- DEBUG: uv_write...\n");
+    req->buf = uv_buf_init(malloc(buf.len), buf.len);
+    memcpy(req->buf.base, buf.base, buf.len);
+    OXLLog("Performing write...");
     uv_write((uv_write_t *)req, (uv_stream_t *)dest, &req->buf, 1, callback);
 }

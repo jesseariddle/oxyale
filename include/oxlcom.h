@@ -1,5 +1,5 @@
 //
-//  oxyale-common.h
+//  oxlcom.h
 //  oxyale
 //
 //  Created by Jesse Riddle on 7/18/15.
@@ -20,7 +20,6 @@
 #define IP4_ADDR_SZ_CAP 16
 #define IP6_MAX_ADDR_SZ_CAP 46
 
-
 typedef unsigned char byte;
 
 typedef struct OXLPalHeaderStruct {
@@ -32,16 +31,22 @@ typedef struct OXLWriteReqStruct {
     uv_buf_t buf;
 } OXLWriteReq;
 
+typedef struct OXLBufStruct {
+    uint32_t len;
+    char *base;
+} OXLBuf;
+
 void OXLLog(const char *fmt, ...);
 int OXLProcessEvents();
 void OXLInt2Str(int n, char *str, int len);
 void *OXLAlloc(size_t size);
-void OXLRelease(void *mem);
+void OXLRelease(void *buf);
 void OXLAllocBuf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
 void OXLDumpBufWithSize(const uv_buf_t buf, size_t size);
 void OXLDumpBuf(const uv_buf_t buf);
 void OXLReleaseWriteReq(OXLWriteReq *req);
-void OXLWriteData(uv_stream_t *dest, size_t size, uv_buf_t buf, uv_write_cb callback);
+/* void OXLWriteBuf(uv_stream_t *dest, OXLBuf buf, uv_write_cb callback); */
+void OXLWriteBuf(uv_stream_t *dest, OXLBuf buf, uv_write_cb callback);
 
 /* don't export */
 /* #undef PAL_HEADER_FIELDS */
