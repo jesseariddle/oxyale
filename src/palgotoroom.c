@@ -7,13 +7,25 @@
 //
 
 #include <stdio.h>
-#include <palclient.h>
+#include <palcom.h>
 #include <palgotoroom.h>
 
-void OXLPalGotoRoomCmdInit(OXLPalGotoRoomCmd *gotoRoomCmd, uint userID, short roomID)
+void OXLInitPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg, uint32_t userId, uint16_t roomId)
 {
-    gotoRoomCmd->msgID = PAL_TX_GOTO_ROOM_CMD;
-    gotoRoomCmd->msgLen = sizeof(short);
-    gotoRoomCmd->msgRef = userID;
-    gotoRoomCmd->roomID = roomID;
+    gotoRoomMsg->palMsg.id = PAL_TX_GOTO_ROOM_MSG;
+    gotoRoomMsg->palMsg.len = sizeof(roomId);
+    gotoRoomMsg->palMsg.ref = userId;
+    gotoRoomMsg->roomId = roomId;
+}
+
+OXLPalGotoRoomMsg *OXLCreatePalGotoRoomMsg(uint32_t userId, uint16_t roomId)
+{
+    OXLPalGotoRoomMsg *gotoRoomMsg = malloc(sizeof(*gotoRoomMsg));
+    OXLInitPalGotoRoomMsg(gotoRoomMsg, userId, roomId);
+    return gotoRoomMsg;
+}
+
+void OXLDestroyPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg)
+{
+    free(gotoRoomMsg);
 }

@@ -1,19 +1,21 @@
 //
-//  paldefs.h
+//  palcom.h
 //  oxyale
 //
 //  Created by Jesse Riddle on 7/18/15.
 //  Copyright (c) 2015 Riddle Software. All rights reserved.
 //
 
-#ifndef oxyale_paldefs_h
-#define oxyale_paldefs_h
+#ifndef oxyale_palcom_h
+#define oxyale_palcom_h
+
+#include "oxlcom.h"
 
 #define             PAL_INET_DEFAULT_PORT 9998
 #define                PAL_NET_HEADER_LEN 12
 
 #define               PAL_USERNAME_SZ_CAP 31
-#define               PAL_WIZ_PASS_SZ_CAP 32
+#define                PAL_WIZPASS_SZ_CAP 32
 #define            PAL_SERVER_NAME_SZ_CAP 256
 #define            PAL_RESERVED_LOGON_LEN 5
 
@@ -113,7 +115,7 @@
 #define                 PAL_RX_SPOT_STATE 0x73537461
 #define                  PAL_RX_SPOT_MOVE 0x636F4C73
 #define                  PAL_RX_PICT_MOVE 0x704C6F63
-#define                   PAL_RX_DRAW_CMD 0x64726177
+#define                   PAL_RX_DRAW_MSG 0x64726177
 
 #define                  PAL_RX_PROP_MOVE 0x6D507270
 #define                PAL_RX_PROP_DELETE 0x64507270
@@ -129,40 +131,49 @@
 
 /* outgoing messages */
 
-#define                     PAL_TX_BYE_CMD 0x62796520
-#define                    PAL_TX_PONG_CMD 0x706F6E67
-#define                     PAL_TX_SAY_CMD 0x78746C6B
-#define                 PAL_TX_WHISPER_CMD 0x78776973
-#define                    PAL_TX_MOVE_CMD 0x754C6F63
-#define              PAL_TX_USER_COLOR_CMD 0x75737243
-#define               PAL_TX_USER_FACE_CMD 0x75737246
-#define       PAL_TX_REQUEST_ROOM_LIST_CMD 0x724C7374
-#define               PAL_TX_GOTO_ROOM_CMD 0x6E617652
-#define       PAL_TX_REQUEST_USER_LIST_CMD 0x754C7374
-#define           PAL_TX_REQUEST_ASSET_CMD 0x71417374
-#define               PAL_TX_USER_PROP_CMD 0x75737250
-#define             PAL_TX_CHANGE_NAME_CMD 0x7573724E
-#define                PAL_TX_BLOWTHRU_CMD 0x626C6f77
-#define              PAL_TX_SPOT_STATE_CMD 0x73537461
-#define               PAL_TX_DOOR_LOCK_CMD 0x6C6F636B
-#define             PAL_TX_DOOR_UNLOCK_CMD 0x756E6C6F
-#define                    PAL_TX_ROOM_CMD 0x30C6015D
-#define               PAL_TX_SUPERUSER_CMD 0x73757372
-#define                   PAL_TX_LOGON_CMD 0x72656769
-#define               PAL_TX_PROP_MOVE_CMD 0x6D507270
-#define             PAL_TX_PROP_DELETE_CMD 0x64507270
-#define                PAL_TX_PROP_NEW_CMD 0x6E507270
-#define              PAL_TX_ASSET_REGI_CMD 0x72417374
-#define              PAL_TX_GLOBAL_MSG_CMD 0x676D7367
-#define                PAL_TX_ROOM_MSG_CMD 0x726D7367
-#define                PAL_TX_SUSR_MSG_CMD 0x736D7367
-#define            PAL_TX_AUTHRESPONSE_CMD 0x61757472
-#define                    PAL_TX_DRAW_CMD 0x64726177
+#define                     PAL_TX_BYE_MSG 0x62796520
+#define                    PAL_TX_PING_MSG 0x706F6E67
+#define                     PAL_TX_SAY_MSG 0x78746C6B
+#define                 PAL_TX_WHISPER_MSG 0x78776973
+#define                    PAL_TX_MOVE_MSG 0x754C6F63
+#define              PAL_TX_USER_COLOR_MSG 0x75737243
+#define               PAL_TX_USER_FACE_MSG 0x75737246
+#define       PAL_TX_REQUEST_ROOM_LIST_MSG 0x724C7374
+#define               PAL_TX_GOTO_ROOM_MSG 0x6E617652
+#define       PAL_TX_REQUEST_USER_LIST_MSG 0x754C7374
+#define           PAL_TX_REQUEST_ASSET_MSG 0x71417374
+#define               PAL_TX_USER_PROP_MSG 0x75737250
+#define             PAL_TX_CHANGE_NAME_MSG 0x7573724E
+#define                PAL_TX_BLOWTHRU_MSG 0x626C6f77
+#define              PAL_TX_SPOT_STATE_MSG 0x73537461
+#define               PAL_TX_DOOR_LOCK_MSG 0x6C6F636B
+#define             PAL_TX_DOOR_UNLOCK_MSG 0x756E6C6F
+#define                    PAL_TX_ROOM_MSG 0x30C6015D
+#define               PAL_TX_SUPERUSER_MSG 0x73757372
+#define                   PAL_TX_LOGON_MSG 0x72656769
+#define               PAL_TX_PROP_MOVE_MSG 0x6D507270
+#define             PAL_TX_PROP_DELETE_MSG 0x64507270
+#define                PAL_TX_PROP_NEW_MSG 0x6E507270
+#define              PAL_TX_ASSET_REGI_MSG 0x72417374
+#define              PAL_TX_GLOBAL_MSG_MSG 0x676D7367
+#define                PAL_TX_ROOM_MSG_MSG 0x726D7367
+#define                PAL_TX_SUSR_MSG_MSG 0x736D7367
+#define            PAL_TX_AUTHRESPONSE_MSG 0x61757472
+#define                    PAL_TX_DRAW_MSG 0x64726177
 
 #define PAL_HEADER_FIELDS \
 /* public */ \
-uint32_t msgID; \
-uint32_t msgLen; \
-uint32_t msgRef;
+uint32_t id; \
+uint32_t len; \
+uint32_t ref;
+
+typedef struct OXLPalMsgStruct {
+    PAL_HEADER_FIELDS
+} OXLPalMsg;
+
+void OXLInitPalMsg(OXLPalMsg *palMsg);
+void OXLDumpPalMsg(const OXLPalMsg *palMsg);
+
+#undef PAL_HEADER_FIELDS /* don't export */
 
 #endif

@@ -13,7 +13,13 @@
 #include <stdlib.h>
 #include <libuv/uv.h>
 
-#include "paldefs.h"
+#ifndef YES
+#define YES 1
+#endif
+
+#ifndef NO
+#define NO 0
+#endif
 
 #define OXL_MAX_STR_SZ_CAP 4096
 #define IP_PORT_SZ_CAP 6
@@ -21,34 +27,45 @@
 #define IP6_MAX_ADDR_SZ_CAP 46
 
 typedef unsigned char byte;
+typedef void (*OXLCallback)(void *sender, const void *data, const int32_t status);
 
-typedef struct OXLPalHeaderStruct {
-    PAL_HEADER_FIELDS
-} OXLPalHeader;
+typedef struct OXLCallbackBatonStruct {
+    const OXLCallback callback;
+    void *sender;
+    const void *data;
+    const int32_t status;
+} OXLCallbackBaton;
 
-typedef struct OXLWriteReqStruct {
-    uv_write_t req;
-    uv_buf_t buf;
-} OXLWriteReq;
+typedef struct OXLWriteBatonStruct {
+    uv_write_t write;
+    const uv_buf_t buf;
+    const OXLCallbackBaton cb;
+} OXLWriteBaton;
 
-typedef struct OXLBufStruct {
-    uint32_t len;
+typedef struct OXLTimerBatonStruct {
+    uv_timer_t timer;
+    const OXLCallbackBaton cb;
+} OXLTimerBaton;
+
+typedef struct OXLP8StringStruct {
+    uint8_t len;
     char *base;
-} OXLBuf;
+} OXLPString;
 
 void OXLLog(const char *fmt, ...);
-int OXLProcessEvents();
+int OXLProcessEvents(void);
 void OXLInt2Str(int n, char *str, int len);
 void *OXLAlloc(size_t size);
-void OXLRelease(void *buf);
+void OXLFree(void *buf);
 void OXLAllocBuf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-void OXLDumpBufWithSize(const uv_buf_t buf, size_t size);
+void OXLDumpBufWithSize(const uv_buf_t buf, size_t lenInBytes);
 void OXLDumpBuf(const uv_buf_t buf);
-void OXLReleaseWriteReq(OXLWriteReq *req);
-/* void OXLWriteBuf(uv_stream_t *dest, OXLBuf buf, uv_write_cb callback); */
-void OXLWriteBuf(uv_stream_t *dest, OXLBuf buf, uv_write_cb callback);
-
-/* don't export */
-/* #undef PAL_HEADER_FIELDS */
+void OXLDumpRawBufWithSize(const byte *buf, const size_t len);
+OXLWriteBaton *OXLCreateWriteBaton(char *buf, uint lenInBytes, void *data, OXLCallback cb);
+void OXLDestroyWriteBaton(OXLWriteBaton *wb);
+/*
+void OXLWriteBuf(uv_stream_t *dest, size_t len, uv_buf_t buf, uv_write_cb callback);
+void OXLWrite(uv_stream_t *dest, OXLWriteBaton *wb, uv_write_cb callback);
+*/
 
 #endif

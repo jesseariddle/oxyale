@@ -20,9 +20,14 @@
 #include <libuv/uv.h>
 
 #include "oxlcom.h"
+#include "palcom.h"
 #include "palroom.h"
 #include "palreg.h"
 #include "palcrypto.h"
+#include "pallogon.h"
+#include "palping.h"
+#include "paljoinroom.h"
+#include "palleaveroom.h"
 #include "palclient.h"
 
 #ifndef __cplusplus

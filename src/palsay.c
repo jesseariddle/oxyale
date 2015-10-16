@@ -9,25 +9,36 @@
 #include <oxlcom.h>
 #include <palsay.h>
 
-void OXLPalSayCmdDump(OXLPalSayCmd *sayCmd)
+void OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg)
 {
-    fprintf(stderr, "sayCmd->cmdID = 0x%x\n", sayCmd->msgID);
-    fprintf(stderr, "sayCmd->cmdLen = %d\n", sayCmd->msgLen);
-    fprintf(stderr, "sayCmd->cmdRef = 0x%x\n", sayCmd->msgRef);
-    fprintf(stderr, "sayCmd->len = %d\n", sayCmd->len);
-    fprintf(stderr, "sayCmd->msg = %s\n", sayCmd->msg);
+    OXLLog("sayMsg->palMsg.id = 0x%x\n", sayMsg->palMsg.id);
+    OXLLog("sayMsg->palMsg.len = %d\n", sayMsg->palMsg.len);
+    OXLLog("sayMsg->palMsg.ref = 0x%x\n", sayMsg->palMsg.ref);
+    OXLLog("sayMsg->len = %d\n", sayMsg->len);
+    OXLLog("sayMsg->msg = %s\n", sayMsg->msg);
 }
 
-void OXLPalSayCmdInit(OXLPalSayCmd *sayCmd, OXLPalClient *client, char *text)
+void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *plainText)
 {
     /* oxl_say_t *say_msg = (oxl_say_t *)&buf.base; */
-    char ct[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
-    OXLPalCryptoEncrypt(client->crypto, text, ct);
-    fprintf(stderr, "text: \"%s\", ct: \"%s\"\n", text, ct);
-    uint z = (uint)strnlen(ct, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
-    sayCmd->msgID = PAL_TX_SAY_CMD;
-    sayCmd->msgLen = z + 3;
-    sayCmd->msgRef = client->user.id;
-    sayCmd->len = (ushort)z;
-    memcpy(sayCmd->msg, ct, z);
+    char cipherText[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
+    OXLPalCryptoEncrypt(client->crypto, plainText, cipherText);
+    OXLLog("plainText: \"%s\"\ncipherText: \"%s\"\n", plainText, cipherText);
+    uint16_t z = (uint16_t)strnlen(cipherText, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
+    
+    OXLPalSayMsg initPalSayMsg = { .palMsg.id = PAL_TX_SAY_MSG,
+                                   .palMsg.len = z + 3,
+                                   .palMsg.ref = client->user.id,
+                                   .len = z };
+    
+    memcpy((OXLPalSayMsg *)sayMsg, &initPalSayMsg, sizeof(*sayMsg));
+    /* memcpy((char *)&sayMsg->msg, cipherText, z); */
+    strlcpy((char *)&sayMsg->msg, cipherText, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
+}
+
+OXLPalSayMsg *OXLCreatePalSayMsg(OXLPalClient *client, const char *plainText)
+{
+    OXLPalSayMsg *sayMsg = malloc(sizeof(*sayMsg));
+    OXLInitPalSayMsg(sayMsg, client, plainText);
+    return sayMsg;
 }

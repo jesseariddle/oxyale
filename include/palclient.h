@@ -10,9 +10,11 @@
 #define oxyale_palclient_h
 
 #include "oxlcom.h"
+#include "palcom.h"
 #include "palcrypto.h"
 #include "palroom.h"
 #include "palevent.h"
+#include "palping.h"
 
 /*enum PalConnectionStateEnum { */
 /*    c_busy, */ /* Busy; waiting for incoming data or for a write to complete. */
@@ -28,22 +30,23 @@ typedef enum OXLPalClientStateEnum {
 } OXLPalClientState;
 
 typedef struct OXLPalClientStruct {
-    uint32_t msgID;
-    uint32_t msgLen;
-    uint32_t msgRef;
+    OXLPalMsg msg;
     OXLPalCrypto crypto;
     uv_tcp_t *conn;
     uv_loop_t *loop;
+    uv_timer_t txTimer;
     /* uv_getaddrinfo_t resolver; */
     struct addrinfo *ai;
     uint32_t sockfd;
     OXLPalClientState state;
     char *host;
     uint16_t port;
-    uint32_t roomID;
+    uint16_t roomId;
     char servername[PAL_SERVER_NAME_SZ_CAP];
+    int16_t usernameLen;
     char username[PAL_USERNAME_SZ_CAP];
-    char wizpass[PAL_WIZ_PASS_SZ_CAP];
+    int16_t wizpassLen;
+    char wizpass[PAL_WIZPASS_SZ_CAP];
     int32_t puidChangedFlag;
     int32_t puidCounter;
     int32_t puidCRC;
@@ -59,19 +62,29 @@ typedef struct OXLPalClientStruct {
     OXLPalEvent event;
 } OXLPalClient;
 
-OXLPalClient *OXLMakePalClient();
-void OXLReleasePalClient(OXLPalClient *client);
+OXLPalClient *OXLCreatePalClient(void);
+void OXLDestroyPalClient(OXLPalClient *client);
 
 void OXLPalClientConnect(OXLPalClient *client,
                          const char *username,
                          const char *wizpass,
-                         const char *host,
+                         const char *hostname,
                          const uint16_t port,
-                         const int32_t initialRoom);
+                         const uint16_t initialRoom);
+
 void OXLPalClientDisconnect(OXLPalClient *client);
-void OXLPalClientFinishResolve(uv_getaddrinfo_t *req, int status, struct addrinfo *res);
-void OXLPalLeaveRoom(OXLPalClient *client, OXLPalRoom *room);
-void OXLPalJoinRoom(OXLPalClient *client, int32_t gotoRoomID);
-void OXLPalClientSay(OXLPalClient *client, size_t size, uv_buf_t buf, uv_write_cb finishSay);
+
+void OXLPalClientGotoRoom(OXLPalClient *client,
+                          const uint16_t gotoRoomId,
+                          const OXLCallback cbLeaveRoom,
+                          const OXLCallback cbJoinRoom);
+
+void OXLPalClientJoinRoom(OXLPalClient *client, const uint16_t gotoRoomId, const OXLCallback callback);
+void OXLPalClientLeaveRoom(OXLPalClient *client, const OXLPalRoom *room, const OXLCallback callback);
+void OXLPalClientSay(OXLPalClient *client, const char *plainText, const OXLCallback callback);
+void OXLPalClientGetRoomList(OXLPalClient *client, const OXLCallback callback);
+
+void OXLPalClientSendAndRetainMsg(OXLPalClient *client, const void *msg, const OXLCallback callback);
+void OXLPalClientSendAndDestroyMsg(OXLPalClient *client, void *msg, const OXLCallback callback);
 
 #endif

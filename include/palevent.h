@@ -46,20 +46,17 @@
  */
 
 typedef struct OXLPalEventStruct {
-    void (*PalEventConnectSuccess)(void *sender);
-    void (*PalEventConnectFail)(void *sender);
-    void (*PalEventLogonSuccess)(void *sender);
-    void (*PalEventLogonFail)(void *sender);
-    void (*PalEventDisconnectSuccess)(void *sender);
-    void (*PalEventGotoURLSuccess)(void *sender);
-    void (*PalEventRoomChangeSuccess)(void *sender);
-    void (*PalEventAuthRequestSuccess)(void *sender);
-    void (*PalEventSecurityFail)(void *sender);
-    void (*PalEventServerInfo)(void *sender);
-    void (*PalEventXTalk)(void *sender, const char *message);
-    void (*PalEventTxPing)(void *sender);
-    void (*PalEventRxPing)(void *sender);
-    void (*PalEventRxPong)(void *sender);
+    void (*PalAuthRequestEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalConnectEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalDisconnectEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalGotoURLEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalLogonEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalPingEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalPongEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalRoomChangeEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalSecurityEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalServerInfoEvent)(void *sender, const void *data, const int32_t status);
+    void (*PalXTalkEvent)(void *sender, const void *data, const int32_t status);
 } OXLPalEvent;
 
 #endif

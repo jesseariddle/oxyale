@@ -10,10 +10,11 @@
 #define oxyale_paluser_h
 
 #include "oxlcom.h"
+#include "palcom.h"
 #include "palpropstore.h"
 
 typedef struct OXLPalUserStruct {
-    PAL_HEADER_FIELDS
+    OXLPalMsg msg;
     int32_t id;
     char name[PAL_USERNAME_SZ_CAP]; /* 32 */
     int32_t x;

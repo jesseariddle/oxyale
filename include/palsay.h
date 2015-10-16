@@ -11,13 +11,14 @@
 
 #include <palclient.h>
 
-typedef struct OXLPalSayCmdStruct {
-    PAL_HEADER_FIELDS
-    uint16_t len;
-    char msg[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
-} OXLPalSayCmd;
+typedef struct OXLPalSayMsgStruct {
+    const OXLPalMsg palMsg;
+    const uint16_t len;
+    const char msg[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
+} OXLPalSayMsg;
 
-void OXLPalSayCmdInit(OXLPalSayCmd *sayCmd, OXLPalClient *client, char *plainText);
-void OXLPalSayCmdDump(OXLPalSayCmd *sayCmd);
+void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *plainText);
+OXLPalSayMsg *OXLCreatePalSayMsg(OXLPalClient *client, const char *plainText);
+void OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg);
 
 #endif

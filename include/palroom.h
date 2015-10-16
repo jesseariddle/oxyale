@@ -15,7 +15,7 @@
 #include "palview.h"
 
 typedef struct OXLPalRoomMsgStruct {
-    PAL_HEADER_FIELDS
+    OXLPalMsg palMsg;
     int32_t roomFlags;
     int32_t face;
     int16_t roomID;
@@ -50,13 +50,13 @@ typedef struct OXLPalRoomStruct {
     OXLPalHotSpot *hotspotsAboveAvatars;
     OXLPalHotSpot *hotspotsAboutNametags;
     OXLPalHotSpot *hotspotsAboveEverything;
-    void *hotspotsByID;
+    void *hotspotsById;
     OXLPalProp *looseProps;
     void *drawFrontCommands;
     void *drawBackCommands;
     void *drawLayerHistory;
     OXLPalUser *selectedUser;
-    int32_t userID;
+    int32_t userId;
     OXLPalView *roomView;
     double dimLevel;
     int32_t showAvatarsFlag;
@@ -81,9 +81,9 @@ typedef struct OXLPalRoomStruct {
  const oxl_net_room_t *room_msg);
  */
 
-void OXLPalInitRoom(OXLPalRoom *room);
+void OXLInitPalRoom(OXLPalRoom *room);
 void OXLPalFinishSelectedUserChanged(OXLPalUser *user);
 
-void OXLPalMsgToRoom(OXLPalRoom *room, const byte *data, const uint refID);
+void OXLMakePalMsgToRoom(OXLPalRoom *room, const byte *data, const uint refID);
 
 #endif

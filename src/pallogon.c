@@ -6,132 +6,121 @@
 //  Copyright (c) 2015 Riddle Software. All rights reserved.
 //
 
+#include <palclient.h>
 #include <pallogon.h>
 
-void OXLInitPalLogonCmd(OXLPalLogonCmd *logonCmd,
-                        char *username,
-                        char *wizpass,
-                        uint32_t initialRoomID,
-                        uint32_t regCRC,
-                        uint32_t regCounter,
-                        uint16_t puidCRC,
-                        uint32_t puidCounter)
+void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
+                        const char *username,
+                        const char *wizpass,
+                        const uint32_t initialRoomId,
+                        const uint32_t regCRC,
+                        const uint32_t regCounter,
+                        const uint16_t puidCRC,
+                        const uint32_t puidCounter)
 {
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)buf->base; */
-    OXLLog("PalLogonCmdInit");
-    logonCmd->msgID = PAL_TX_LOGON_CMD;
-    logonCmd->msgLen = 0x80;
-    logonCmd->msgRef = 0;
-    logonCmd->regCRC = regCRC;
-    logonCmd->regCounter = regCounter;
-    logonCmd->usernameLen = (uint8_t)strlen(username);
-    strncpy(logonCmd->username, username, PAL_USERNAME_SZ_CAP);
-    strncpy(logonCmd->wizpass, wizpass, PAL_WIZ_PASS_SZ_CAP);
+    OXLLog("OXLInitPalLogonMsg");
     
-    /* raw */
-    logonCmd->flags = PAL_AUXFLAGS_AUTHENTICATE | PAL_AUXFLAGS_WIN32;
-    
-    logonCmd->puidCounter = puidCounter;
-    logonCmd->puidCRC = puidCRC;
-    logonCmd->demoElapsed = 0;
-    logonCmd->totalElapsed = 0;
-    logonCmd->demoLimit = 0;
-    
-    /* initial room */
-    logonCmd->initialRoomID = initialRoomID;
+    OXLPalLogonMsg logonMsgInit = {
+        .palMsg.id = PAL_TX_LOGON_MSG,
+        .palMsg.len = 0x80,
+        .palMsg.ref = 0,
+        .regCRC = regCRC,
+        .regCounter = regCounter,
+        .usernameLen = (uint8_t)strnlen(username, PAL_USERNAME_SZ_CAP),
+        .flags = PAL_AUXFLAGS_AUTHENTICATE | PAL_AUXFLAGS_WIN32,
+        .puidCounter = puidCounter,
+        .puidCRC = puidCRC,
+        .demoElapsed = 0,
+        .totalElapsed = 0,
+        .demoLimit = 0,
+        .initialRoomId = initialRoomId,
+        .ulUploadRequestedProtocolVersion = 0,
+        .ulUploadCapabilities = PAL_ULCAPS_ASSETS_PALACE,
+        .ulDownloadCapabilities = PAL_DLCAPS_ASSETS_PALACE |                                        PAL_DLCAPS_FILES_PALACE | PAL_DLCAPS_FILES_HTTPSRVR,
+        .ul2DEngineCapabilities = 0,
+        .ul2DGraphicsCapabilities = 0,
+        .ul3DEngineCapabilities = 0
+    };
+
+    strncpy((char *)&logonMsgInit.username, username, PAL_USERNAME_SZ_CAP); /* PString */
+    strlcpy((char *)&logonMsgInit.wizpass, wizpass, PAL_WIZ_PASS_SZ_CAP); /* CString */
     
     /* does nothing, but is logged by server */
     /* strncpy(logonCmd->reserved, "OXYALE", 6); */
     /* strncpy(logonCmd->reserved, "PC4232", 6); */
-    strncpy(logonCmd->reserved, "OPNPAL", 6);
-    
-    /* ignored on server */
-    logonCmd->ulUploadRequestedProtocolVersion = 0;
-    
-    /* TODO upload capabilities plox */
-    logonCmd->ulUploadCapabilities = PAL_ULCAPS_ASSETS_PALACE;
-    
-    /* TODO download capabilities plox */
-    logonCmd->ulDownloadCapabilities =
-        PAL_DLCAPS_ASSETS_PALACE | PAL_DLCAPS_FILES_PALACE | PAL_DLCAPS_FILES_HTTPSRVR;
-    
-    /* unused */
-    logonCmd->ul2DEngineCapabilities = 0;
-    
-    /* unused */
-    logonCmd->ul2DGraphicsCapabilities = 0;
-    
-    /* unused */
-    logonCmd->ul3DEngineCapabilities = 0;
+    strncpy((char *)&logonMsgInit.reserved, "OPNPAL", 6);
+
+    memcpy(logonMsg, &logonMsgInit, sizeof(*logonMsg));
 }
 
-OXLPalLogonCmd *OXLMakePalLogonCmd(char *username,
-                                   char *wizpass,
-                                   uint32_t initialRoomID,
-                                   uint32_t regCRC,
-                                   uint32_t regCounter,
-                                   uint16_t puidCRC,
-                                   uint32_t puidCounter)
+OXLPalLogonMsg *OXLCreatePalLogonMsg(const char *username,
+                                     const char *wizpass,
+                                     const uint32_t initialRoomId,
+                                     const uint32_t regCRC,
+                                     const uint32_t regCounter,
+                                     const uint16_t puidCRC,
+                                     const uint32_t puidCounter)
 {
-    OXLLog("PalLogonCmdCreate");
-    OXLPalLogonCmd *logonCmd = OXLAlloc(sizeof(*logonCmd));
-    OXLInitPalLogonCmd(logonCmd,
+    OXLLog("OXLCreatePalLogonMsg");
+    OXLPalLogonMsg *logonMsg = OXLAlloc(sizeof(*logonMsg));
+    OXLInitPalLogonMsg(logonMsg,
                        username,
                        wizpass,
-                       initialRoomID,
+                       initialRoomId,
                        regCRC,
                        regCounter,
                        puidCRC,
                        puidCounter);
-    return logonCmd;
+    return logonMsg;
 }
 
-void OXLDumpPalLogonCmd(const OXLPalLogonCmd *logonCmd)
+void OXLDumpPalLogonMsg(const OXLPalLogonMsg *logonMsg)
 {
-    OXLLog("PalLogonCmdDump");
+    OXLLog("OXLDumpPalLogonMsg");
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
     /* raw */
-    OXLLog("logonCmd->msgID = 0x%x", logonCmd->msgID);
-    OXLLog("logonCmd->msgSize = %d", logonCmd->msgLen);
-    OXLLog("logonCmd->msgRef = 0x%x", logonCmd->msgRef);
-    OXLLog("logonCmd->regCRC = 0x%x", logonCmd->regCRC);
-    OXLLog("logonCmd->regCounter = 0x%x", logonCmd->regCounter);
-    OXLLog("logonCmd->usernameLen = %d", logonCmd->usernameLen);
-    OXLLog("logonCmd->username = %s", logonCmd->username);
-    OXLLog("logonCmd->flags = 0x%x", logonCmd->flags);
-    OXLLog("logonCmd->puidCounter = 0x%x", logonCmd->puidCounter);
-    OXLLog("logonCmd->puidCRC = 0x%x", logonCmd->puidCRC);
-    OXLLog("logonCmd->demoElapsed = 0x%x", logonCmd->demoElapsed);
-    OXLLog("logonCmd->totalElapsed = 0x%x", logonCmd->totalElapsed);
-    OXLLog("logonCmd->demoLimit = 0x%x", logonCmd->demoLimit);
+    OXLLog("logonMsg->palMsg.id = 0x%x", logonMsg->palMsg.id);
+    OXLLog("logonMsg->palMsg.len = %d", logonMsg->palMsg.len);
+    OXLLog("logonMsg->palMsg.ref = 0x%x", logonMsg->palMsg.ref);
+    OXLLog("logonMsg->regCRC = 0x%x", logonMsg->regCRC);
+    OXLLog("logonMsg->regCounter = 0x%x", logonMsg->regCounter);
+    OXLLog("logonMsg->usernameLen = %d", logonMsg->usernameLen);
+    OXLLog("logonMsg->username = %s", logonMsg->username);
+    OXLLog("logonMsg->flags = 0x%x", logonMsg->flags);
+    OXLLog("logonMsg->puidCounter = 0x%x", logonMsg->puidCounter);
+    OXLLog("logonMsg->puidCRC = 0x%x", logonMsg->puidCRC);
+    OXLLog("logonMsg->demoElapsed = 0x%x", logonMsg->demoElapsed);
+    OXLLog("logonMsg->totalElapsed = 0x%x", logonMsg->totalElapsed);
+    OXLLog("logonMsg->demoLimit = 0x%x", logonMsg->demoLimit);
     
     /* initial room */
-    OXLLog("logonCmd->roomID = %d", logonCmd->initialRoomID);
+    OXLLog("logonMsg->roomId = %d", logonMsg->initialRoomId);
     
     /* does nothing, but is logged by server */
-    OXLLog("logonCmd->reserved = %s", logonCmd->reserved);
+    OXLLog("logonMsg->reserved = %s", logonMsg->reserved);
     
     /* ignored on server */
-    OXLLog("logonCmd->ulUploadRequestedProtocolVersion = 0x%x",
-           logonCmd->ulUploadRequestedProtocolVersion);
+    OXLLog("logonMsg->ulUploadRequestedProtocolVersion = 0x%x",
+           logonMsg->ulUploadRequestedProtocolVersion);
     
     /* TODO upload capabilities plox */
-    OXLLog("logonCmd->ulUploadCapabilities = 0x%x", logonCmd->ulUploadCapabilities);
+    OXLLog("logonMsg->ulUploadCapabilities = 0x%x", logonMsg->ulUploadCapabilities);
     
     /* TODO download capabilities plox */
-    OXLLog("logonCmd->ulDownloadCapabilities = 0x%x", logonCmd->ulDownloadCapabilities);
+    OXLLog("logonMsg->ulDownloadCapabilities = 0x%x", logonMsg->ulDownloadCapabilities);
     
     /* unused */
-    OXLLog("logonCmd->ul2DEngineCapabilities = 0x%x", logonCmd->ul2DEngineCapabilities);
+    OXLLog("logonMsg->ul2DEngineCapabilities = 0x%x", logonMsg->ul2DEngineCapabilities);
     
     /* unused */
-    OXLLog("logonCmd->ul2DGraphicsCapabilities = 0x%x", logonCmd->ul2DGraphicsCapabilities);
+    OXLLog("logonMsg->ul2DGraphicsCapabilities = 0x%x", logonMsg->ul2DGraphicsCapabilities);
     
     /* unused */
-    OXLLog("logonCmd->ul3DEngineCapabilities = 0x%x", logonCmd->ul3DEngineCapabilities);
+    OXLLog("logonMsg->ul3DEngineCapabilities = 0x%x", logonMsg->ul3DEngineCapabilities);
 }
 
-void OXLReleasePalLogonCmd(OXLPalLogonCmd *logonCmd)
+void OXLDestroyPalLogonMsg(OXLPalLogonMsg *logonMsg)
 {
-    OXLRelease(logonCmd);
+    OXLFree(logonMsg);
 }

@@ -9,8 +9,10 @@
 #ifndef oxyale_palserverinfo_h
 #define oxyale_palserverinfo_h
 
+#include "palcom.h"
+
 typedef struct OXLPalServerInfoMsgStruct {
-    PAL_HEADER_FIELDS
+    OXLPalMsg palMsg;
     int32_t permissions;
     uint8_t size;
     char servername[PAL_SERVER_NAME_SZ_CAP];

@@ -9,13 +9,14 @@
 #ifndef oxyale_palgotoroom_h
 #define oxyale_palgotoroom_h
 
-typedef struct OXLPalGotoRoomCmdStruct {
-    PAL_HEADER_FIELDS
-    uint16_t roomID;
-} OXLPalGotoRoomCmd;
+typedef struct OXLPalGotoRoomMsgStruct {
+    OXLPalMsg palMsg;
+    uint16_t roomId;
+} OXLPalGotoRoomMsg;
 
-void OXLPalGotoRoomCmdInit(OXLPalGotoRoomCmd *room, uint userID, short gotoRoomID);
-
+void OXLInitPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg, uint32_t userId, uint16_t gotoRoomId);
 /* void oxl_client_goto_room(oxl_client_t *self, uint goto_room_id); */
+OXLPalGotoRoomMsg *OXLCreatePalGotoRoomMsg(uint32_t userId, uint16_t gotoRoomId);
+void OXLDestroyPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg);
 
 #endif

@@ -9,7 +9,7 @@
 #ifndef oxyale_pallogon_h
 #define oxyale_pallogon_h
 
-#include <oxlcom.h>
+#include "palcom.h"
 
 #define PAL_USERNAME_SZ_CAP 31
 #define PAL_WIZ_PASS_SZ_CAP 32
@@ -17,49 +17,47 @@
 #define PAL_RESERVED_LOGON_LEN 5
 
 /* typedef struct __attribute__((packed)) oxl_net_logon_s { */
-typedef struct OXLPalLogonCmdStruct {
-    int32_t msgID;
-    int32_t msgLen;
-    int32_t msgRef;
-    int32_t regCRC;
-    int32_t regCounter;
-    uint8_t usernameLen;
-    char username[PAL_USERNAME_SZ_CAP];
-    char wizpass[PAL_WIZ_PASS_SZ_CAP];
-    int32_t flags;
-    int32_t puidCounter;
-    int32_t puidCRC;
-    int32_t demoElapsed;
-    int32_t totalElapsed;
-    int32_t demoLimit;
-    int16_t initialRoomID;
-    char reserved[PAL_RESERVED_LOGON_LEN];
-    int32_t ulUploadRequestedProtocolVersion;
-    int32_t ulUploadCapabilities;
-    int32_t ulDownloadCapabilities;
-    int32_t ul2DEngineCapabilities;
-    int32_t ul2DGraphicsCapabilities;
-    int32_t ul3DEngineCapabilities;
-} OXLPalLogonCmd;
+typedef struct OXLPalLogonMsgStruct {
+    const OXLPalMsg palMsg;
+    const int32_t regCRC;
+    const int32_t regCounter;
+    const uint8_t usernameLen;
+    const char username[PAL_USERNAME_SZ_CAP];
+    const char wizpass[PAL_WIZPASS_SZ_CAP];
+    const int32_t flags;
+    const int32_t puidCounter;
+    const int32_t puidCRC;
+    const int32_t demoElapsed;
+    const int32_t totalElapsed;
+    const int32_t demoLimit;
+    const int16_t initialRoomId;
+    const char reserved[PAL_RESERVED_LOGON_LEN];
+    const int32_t ulUploadRequestedProtocolVersion;
+    const int32_t ulUploadCapabilities;
+    const int32_t ulDownloadCapabilities;
+    const int32_t ul2DEngineCapabilities;
+    const int32_t ul2DGraphicsCapabilities;
+    const int32_t ul3DEngineCapabilities;
+} OXLPalLogonMsg;
 
-void OXLInitPalLogonCmd(OXLPalLogonCmd *logonCmd,
-                        char *username,
-                        char *wizpass,
-                        uint32_t initialRoomID,
-                        uint32_t regCRC,
-                        uint32_t regCounter,
-                        uint16_t puidCRC,
-                        uint32_t puidCounter);
+void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
+                        const char *username,
+                        const char *wizpass,
+                        const uint32_t initialRoomId,
+                        const uint32_t regCRC,
+                        const uint32_t regCounter,
+                        const uint16_t puidCRC,
+                        const uint32_t puidCounter);
 
-OXLPalLogonCmd *OXLMakePalLogonCmd(char *username,
-                                   char *wizpass,
-                                   uint32_t initialRoomID,
-                                   uint32_t regCRC,
-                                   uint32_t regCounter,
-                                   uint16_t puidCRC,
-                                   uint32_t puidCounter);
+OXLPalLogonMsg *OXLCreatePalLogonMsg(const char *username,
+                                     const char *wizpass,
+                                     const uint32_t initialRoomID,
+                                     const uint32_t regCRC,
+                                     const uint32_t regCounter,
+                                     const uint16_t puidCRC,
+                                     const uint32_t puidCounter);
 
-void OXLReleasePalLogonCmd(OXLPalLogonCmd *logonCmd);
-void OXLDumpPalLogonCmd(const OXLPalLogonCmd *logonCmd);
+void OXLDestroyPalLogonMsg(OXLPalLogonMsg *logonMsg);
+void OXLDumpPalLogonMsg(const OXLPalLogonMsg *logonMsg);
 
 #endif
