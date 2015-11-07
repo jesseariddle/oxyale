@@ -48,10 +48,28 @@ void OXLFree(void *buf)
     free(buf); /* could adopt a different memory strategy here */
 }
 
-void OXLLog(const char *fmt, ...) {
+void OXLLogDebug(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     fprintf(stderr, "--- DEBUG: ");
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+    va_end(args);
+}
+
+void OXLLogError(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "--- ERROR: ");
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+    va_end(args);
+}
+
+void OXLLogInfo(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "--- INFO: ");
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
     va_end(args);
@@ -61,6 +79,10 @@ void OXLInt2Str(int n, char *str, int len) {
     snprintf(str, len - 1, "%d", n);
 }
 
+void OXLChainCallback(OXLCallbackBaton *ocbb)
+{
+    ocbb->callback(ocbb->sender, ocbb->data, ocbb->status);
+}
 
 void OXLAllocBuf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
@@ -74,7 +96,7 @@ void OXLDumpBufWithSize(const uv_buf_t buf, size_t size)
     size_t i = size, j;
     int c0 = 0, c1 = 0;
     size_t nlines = size / ndigits + (0 < size % ndigits);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "Dumping buf with size: %ld\n", size);
     for (j = 0; j < nlines; ++j) {
         fprintf(stderr, "%08x  ", c0);
         for (i = 0; i < ndigits; ++i) {
@@ -122,7 +144,7 @@ void OXLDumpRawBufWithSize(const byte *buf, const size_t len)
     size_t i = len, j;
     int c0 = 0, c1 = 0;
     size_t nlines = len / ndigits + (0 < len % ndigits);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "Dumping raw buf with len: %ld\n", len);
     for (j = 0; j < nlines; ++j) {
         fprintf(stderr, "%08x  ", c0);
         for (i = 0; i < ndigits; ++i) {
@@ -152,14 +174,84 @@ void OXLDumpRawBufWithSize(const byte *buf, const size_t len)
     }
 }
 
-void OXLDestroyWriteBaton(OXLWriteBaton *wb)
+OXLWriteBaton *OXLCreateWriteBaton(void *sender, uv_buf_t buf, OXLCallback oc)
 {
-    OXLLog("OXLDestroyWriteBaton");
-    if (wb) {
-        if (wb->buf.base) {
-            OXLFree(wb->buf.base);
+    OXLWriteBaton *owb = OXLAlloc(sizeof(*owb));
+    
+    /* wb->buf = uv_buf_init((char *)msg, msgSize); */
+    /* memcpy((uv_buf_t *)&owb->buf, &buf, sizeof(owb->buf)); */
+    owb->buf.len = buf.len;
+    owb->buf.base = buf.base;
+    
+    /* copy buf contents to heap */
+    /*
+    uv_buf_t data = uv_buf_init(OXLAlloc(buf.len), (uint32_t)buf.len);
+    memcpy(data.base, buf.base, buf.len);
+    */
+    
+    /* OXLCallbackBaton cbInit = { .sender = sender, .data = (void *)&buf, .callback = callback };
+    memcpy((OXLCallbackBaton *)&wb->cb, &cbInit, sizeof(wb->cb)); */
+    OXLCallbackBaton *ocb = &owb->ocb;
+    ocb->callback = oc;
+    ocb->sender = sender;
+    ocb->data = &buf;
+    
+    /* memcpy((OXLCallback)wb->callback, callback, sizeof(wb->callback)); */
+    
+    return owb;
+}
+
+void OXLDestroyWriteBaton(OXLWriteBaton *owb)
+{
+    OXLLogDebug("OXLDestroyWriteBaton");
+    if (owb) {
+        if (owb->buf.base) {
+            OXLFree(owb->buf.base);
         }
-        OXLFree(wb);
+        OXLFree(owb);
+    }
+}
+
+OXLTimerBaton *OXLCreateTimerBaton(void *sender, void *data, OXLCallback callback)
+{
+    OXLTimerBaton *otb = OXLAlloc(sizeof(*otb));
+    /* OXLCallbackBaton cbInit = { .sender = sender, .data = data, .callback = callback }; */
+    /* memcpy((OXLCallbackBaton *)&tb->cb, &cbInit, sizeof(tb->cb)); */
+    OXLCallbackBaton *ocb = &otb->ocb;
+    ocb->callback = callback;
+    ocb->sender = sender;
+    ocb->data = data;
+    
+    return otb;
+}
+
+void OXLDestroyTimerBaton(OXLTimerBaton *otb)
+{
+    if (otb) {
+        OXLFree(otb);
+    }
+}
+
+OXLCallbackBaton *OXLCreateCallbackBaton(void *sender, void *data, OXLCallback callback)
+{
+    OXLCallbackBaton *ocb = OXLAlloc(sizeof(*ocb));
+    /* OXLCallbackBaton ocbInit = { .sender = sender, .data = data, .callback = callback };
+    memcpy(ocb, &ocbInit, sizeof(*ocb));
+     */
+    ocb->sender = sender;
+    ocb->data = data;
+    ocb->callback = callback;
+    
+    return ocb;
+}
+
+void OXLDestroyCallbackBaton(OXLCallbackBaton *ocb)
+{
+    if (ocb) {
+        if (ocb->data) {
+            OXLFree(ocb->data);
+        }
+        OXLFree(ocb);
     }
 }
 
@@ -184,3 +276,169 @@ void OXLWrite(uv_stream_t *dest, OXLWriteBaton *wb, uv_write_cb callback)
     uv_write(&write, dest, &wb->buf, 1, callback);
 }
 */
+
+
+/* getaddrinfo_cb */
+void OXLAfterResolveHostname_(uv_getaddrinfo_t *req, int32_t status, struct addrinfo *res)
+{
+    OXLLogDebug("OXLAfterResolveHostname status: %d", status);
+    OXLCallbackBaton *ocb = req->data;
+    
+    if (0 < status || status < 0) {
+        OXLLogDebug("Failed to resolve host: %s", uv_strerror(status));
+    } else if (res != NULL && res->ai_addr != NULL) {
+        char addr[OXL_IP4_ADDR_SZ_CAP] = { '\0' };
+        uv_ip4_name((struct sockaddr_in *)res->ai_addr, addr, res->ai_addrlen);
+        OXLLogDebug("Resolved to %s", addr);
+    }
+    
+    if (NULL != ocb && NULL != ocb->callback) {
+        ocb->callback(ocb->sender, res, status);
+        OXLDestroyCallbackBaton(ocb);
+    }
+    /* uv_freeaddrinfo(res); */
+}
+
+void OXLResolveHostname(void *sender, const char *hostname, const uint16_t port, const OXLCallback oc)
+{
+    OXLLogDebug("ResolveHostname");
+
+    /* size_t usernameLen = strlen(username) + 1; */
+    /* size_t wizpassLen = strlen(wizpass) + 1; */
+    
+    /* client->username = calloc(z, PAL_MAX_USERNAME_LEN); */
+    /* sizeof *client->username); */
+    char portString[OXL_IP_PORT_SZ_CAP];
+    OXLInt2Str(port, portString, OXL_IP_PORT_SZ_CAP);
+    
+    struct addrinfo hints; /* = OXLAlloc(sizeof(*hints)); */
+    hints.ai_family = PF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = 0;
+    
+    /* OXLLogDebug("Before alloc uvgetaddrinfo"); */
+    uv_getaddrinfo_t *resolver = OXLAlloc(sizeof(*resolver));
+    /* OXLCallbackBaton *ocb = malloc(sizeof(*ocb)); */
+    
+    /* Setup stacked callback */
+    /*
+    ocb->sender = NULL;
+    ocb->callback = oc;
+    ocb->status = 0;
+    */
+    
+    resolver->data = OXLCreateCallbackBaton(sender, NULL, oc);
+    
+    /* OXLLogDebug("Before uv_getaddrinfo"); */
+    
+    int32_t r = uv_getaddrinfo(uv_default_loop(),
+                               resolver,
+                               OXLAfterResolveHostname_,
+                               hostname,
+                               portString,
+                               &hints);
+    
+    /* OXLLogDebug("After uv_getaddrinfo"); */
+    if (r) {
+        OXLLogError("getaddrinfo call returned: %s", uv_strerror(r));
+        return;
+    }
+}
+
+/* uv_close_cb */
+void OXLAfterCloseSocket_(uv_handle_t *handle)
+{
+    OXLCallbackBaton *ocb = (OXLCallbackBaton *)handle->data;
+    ocb->callback(ocb->sender, ocb->data, ocb->status);
+    OXLDestroyCallbackBaton(ocb);
+    OXLFree(handle);
+}
+
+void OXLCloseSocket_(void *sender, uv_tcp_t *socket, OXLCallback oc)
+{
+    socket->data = oc;
+    uv_close((uv_handle_t *)socket, OXLAfterCloseSocket_);
+}
+
+void OXLCloseSocket(void *sender, uv_tcp_t *socket, OXLCallback oc)
+{
+    OXLCloseSocket_(sender, socket, oc);
+}
+
+/* uv_connect_cb */
+void OXLAfterOpenSocket_(uv_connect_t *connect, int32_t status)
+{
+    OXLLogDebug("OXLAfterOpenSocket status: %d", status);
+    /* OXLCallbackBaton *ocbb = (OXLCallbackBaton *)connect->data; */
+    /* OXLCallback oc = connect->data;*/
+    OXLCallbackBaton *ocb = connect->data;
+    
+    uv_tcp_t *socket = (uv_tcp_t *)connect->handle;
+    
+    if (status < 0) { /* error condition */
+        OXLLogDebug("Error: %d. %s\n", status, uv_strerror(status));
+        ocb->status = status; /* TODO or maybe -OXLEOPENSOCKETFAILURE */
+        OXLCloseSocket_(ocb->sender, socket, ocb->callback);
+    } else if (0 <= status) {
+        if (0 < status) {
+            OXLLogDebug("Socket opened with warnings.");
+        }
+        /* OXLLogDebug("Connected successfully to %s", client->servername); */
+        /* OXLLogDebug("Connected successfully to %s", client->hostname); */
+        /* client->state = STATE_HANDSHAKING; */
+        /* conn->handle->data = client; */
+        
+        /* Start ping timer */
+        /* OXLPalClientStartTxTimer_(client); */
+        
+        /* client->event.PalConnectEvent(client, NULL, status); */
+        
+        /* uv_read_start(conn->handle, OXLAllocBuf, OXLPalClientAfterRead_); */
+    }
+    
+    if (NULL != ocb && NULL != ocb->callback) {
+        ocb->callback(ocb->sender, socket, status);
+        OXLDestroyCallbackBaton(ocb);
+    }
+    
+    /* TODO Free connect here? (unsure) */
+    /* OXLFree(connect); */
+}
+
+void OXLOpenSocketWithLoop(void *sender, uv_loop_t *uv_loop, struct addrinfo *ai, const OXLCallback oc)
+{
+    OXLLogDebug("OXLOpenSocket");
+    
+    /* OXLCallbackBaton *ocb = OXLAlloc(sizeof(*ocb));*/
+    /*ocb->callback = oc;
+    ocb->sender = sender; */
+
+    
+    char addr[OXL_IP4_ADDR_SZ_CAP] = { '\0' };
+    
+    /* uv_ip4_name((struct sockaddr_in *)ai->ai_addr, addr, ai->ai_addrlen); */
+    uv_ip4_name((struct sockaddr_in *)ai->ai_addr, addr, OXL_IP4_ADDR_SZ_CAP);
+    
+    uv_tcp_t *socket = OXLAlloc(sizeof(*socket));
+    uv_tcp_init(uv_loop, socket);
+    uv_connect_t *connect = OXLAlloc(sizeof(*connect));
+    connect->data = OXLCreateCallbackBaton(sender, NULL, oc);
+    
+    /* struct sockaddr_in *dest = (struct sockaddr_in *)ai->ai_addr; */
+    /* ai-> */
+    
+    OXLLogDebug("Connecting to %s", addr);
+    int32_t tcpstatus = uv_tcp_connect(connect, socket, (const struct sockaddr *)ai->ai_addr, OXLAfterOpenSocket_);
+    
+    if (0 != tcpstatus) {
+        OXLLogDebug("uv_tcp_connect: %s", tcpstatus, uv_strerror(tcpstatus));
+    }
+    
+    uv_freeaddrinfo(ai);
+}
+
+void OXLOpenSocket(void *sender, struct addrinfo *ai, OXLCallback oc)
+{
+    OXLOpenSocketWithLoop(sender, uv_default_loop(), ai, oc);
+}

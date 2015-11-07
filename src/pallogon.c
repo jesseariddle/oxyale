@@ -19,7 +19,7 @@ void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
                         const uint32_t puidCounter)
 {
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)buf->base; */
-    OXLLog("OXLInitPalLogonMsg");
+    OXLLogDebug("OXLInitPalLogonMsg");
     
     OXLPalLogonMsg logonMsgInit = {
         .palMsg.id = PAL_TX_LOGON_MSG,
@@ -49,7 +49,7 @@ void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
     /* does nothing, but is logged by server */
     /* strncpy(logonCmd->reserved, "OXYALE", 6); */
     /* strncpy(logonCmd->reserved, "PC4232", 6); */
-    strncpy((char *)&logonMsgInit.reserved, "OPNPAL", 6);
+    strncpy((char *)&logonMsgInit.reserved, "OPNPAL", PAL_RESERVED_LOGON_LEN);
 
     memcpy(logonMsg, &logonMsgInit, sizeof(*logonMsg));
 }
@@ -62,7 +62,7 @@ OXLPalLogonMsg *OXLCreatePalLogonMsg(const char *username,
                                      const uint16_t puidCRC,
                                      const uint32_t puidCounter)
 {
-    OXLLog("OXLCreatePalLogonMsg");
+    OXLLogDebug("OXLCreatePalLogonMsg");
     OXLPalLogonMsg *logonMsg = OXLAlloc(sizeof(*logonMsg));
     OXLInitPalLogonMsg(logonMsg,
                        username,
@@ -77,47 +77,47 @@ OXLPalLogonMsg *OXLCreatePalLogonMsg(const char *username,
 
 void OXLDumpPalLogonMsg(const OXLPalLogonMsg *logonMsg)
 {
-    OXLLog("OXLDumpPalLogonMsg");
+    OXLLogDebug("OXLDumpPalLogonMsg");
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
     /* raw */
-    OXLLog("logonMsg->palMsg.id = 0x%x", logonMsg->palMsg.id);
-    OXLLog("logonMsg->palMsg.len = %d", logonMsg->palMsg.len);
-    OXLLog("logonMsg->palMsg.ref = 0x%x", logonMsg->palMsg.ref);
-    OXLLog("logonMsg->regCRC = 0x%x", logonMsg->regCRC);
-    OXLLog("logonMsg->regCounter = 0x%x", logonMsg->regCounter);
-    OXLLog("logonMsg->usernameLen = %d", logonMsg->usernameLen);
-    OXLLog("logonMsg->username = %s", logonMsg->username);
-    OXLLog("logonMsg->flags = 0x%x", logonMsg->flags);
-    OXLLog("logonMsg->puidCounter = 0x%x", logonMsg->puidCounter);
-    OXLLog("logonMsg->puidCRC = 0x%x", logonMsg->puidCRC);
-    OXLLog("logonMsg->demoElapsed = 0x%x", logonMsg->demoElapsed);
-    OXLLog("logonMsg->totalElapsed = 0x%x", logonMsg->totalElapsed);
-    OXLLog("logonMsg->demoLimit = 0x%x", logonMsg->demoLimit);
+    OXLLogDebug("logonMsg->palMsg.id = 0x%x", logonMsg->palMsg.id);
+    OXLLogDebug("logonMsg->palMsg.len = %d", logonMsg->palMsg.len);
+    OXLLogDebug("logonMsg->palMsg.ref = 0x%x", logonMsg->palMsg.ref);
+    OXLLogDebug("logonMsg->regCRC = 0x%x", logonMsg->regCRC);
+    OXLLogDebug("logonMsg->regCounter = 0x%x", logonMsg->regCounter);
+    OXLLogDebug("logonMsg->usernameLen = %d", logonMsg->usernameLen);
+    OXLLogDebug("logonMsg->username = %s", logonMsg->username);
+    OXLLogDebug("logonMsg->flags = 0x%x", logonMsg->flags);
+    OXLLogDebug("logonMsg->puidCounter = 0x%x", logonMsg->puidCounter);
+    OXLLogDebug("logonMsg->puidCRC = 0x%x", logonMsg->puidCRC);
+    OXLLogDebug("logonMsg->demoElapsed = 0x%x", logonMsg->demoElapsed);
+    OXLLogDebug("logonMsg->totalElapsed = 0x%x", logonMsg->totalElapsed);
+    OXLLogDebug("logonMsg->demoLimit = 0x%x", logonMsg->demoLimit);
     
     /* initial room */
-    OXLLog("logonMsg->roomId = %d", logonMsg->initialRoomId);
+    OXLLogDebug("logonMsg->roomId = %d", logonMsg->initialRoomId);
     
     /* does nothing, but is logged by server */
-    OXLLog("logonMsg->reserved = %s", logonMsg->reserved);
+    OXLLogDebug("logonMsg->reserved = %s", logonMsg->reserved);
     
     /* ignored on server */
-    OXLLog("logonMsg->ulUploadRequestedProtocolVersion = 0x%x",
+    OXLLogDebug("logonMsg->ulUploadRequestedProtocolVersion = 0x%x",
            logonMsg->ulUploadRequestedProtocolVersion);
     
     /* TODO upload capabilities plox */
-    OXLLog("logonMsg->ulUploadCapabilities = 0x%x", logonMsg->ulUploadCapabilities);
+    OXLLogDebug("logonMsg->ulUploadCapabilities = 0x%x", logonMsg->ulUploadCapabilities);
     
     /* TODO download capabilities plox */
-    OXLLog("logonMsg->ulDownloadCapabilities = 0x%x", logonMsg->ulDownloadCapabilities);
+    OXLLogDebug("logonMsg->ulDownloadCapabilities = 0x%x", logonMsg->ulDownloadCapabilities);
     
     /* unused */
-    OXLLog("logonMsg->ul2DEngineCapabilities = 0x%x", logonMsg->ul2DEngineCapabilities);
+    OXLLogDebug("logonMsg->ul2DEngineCapabilities = 0x%x", logonMsg->ul2DEngineCapabilities);
     
     /* unused */
-    OXLLog("logonMsg->ul2DGraphicsCapabilities = 0x%x", logonMsg->ul2DGraphicsCapabilities);
+    OXLLogDebug("logonMsg->ul2DGraphicsCapabilities = 0x%x", logonMsg->ul2DGraphicsCapabilities);
     
     /* unused */
-    OXLLog("logonMsg->ul3DEngineCapabilities = 0x%x", logonMsg->ul3DEngineCapabilities);
+    OXLLogDebug("logonMsg->ul3DEngineCapabilities = 0x%x", logonMsg->ul3DEngineCapabilities);
 }
 
 void OXLDestroyPalLogonMsg(OXLPalLogonMsg *logonMsg)

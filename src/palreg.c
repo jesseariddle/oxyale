@@ -111,7 +111,7 @@ void OXLPalRegStringToReg(const char *trimmedRegString, OXLPalReg *reg)
     size_t pos = 0, ocnt = 0, nbits = 64, i = 0;
     int16_t sn = 0, mask = 0x0080;
     int32_t si[2];
-    byte *sip = ( byte * )&si;
+    byte *sip = (byte *)si;
     const char *t = trimmedRegString;
     while (nbits--) {
         if (ocnt == 0) {

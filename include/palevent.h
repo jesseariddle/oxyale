@@ -46,17 +46,20 @@
  */
 
 typedef struct OXLPalEventStruct {
-    void (*PalAuthRequestEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalConnectEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalDisconnectEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalGotoURLEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalLogonEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalPingEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalPongEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalRoomChangeEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalSecurityEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalServerInfoEvent)(void *sender, const void *data, const int32_t status);
-    void (*PalXTalkEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalAuthRequestEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalConnectEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalDisconnectEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalGotoURLEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalHandshakeEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalLogonEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalOpenSocketEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalPingEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalPongEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalRoomChangeEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalSecurityEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalServerInfoEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalServerVerEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalXTalkEvent)(void *sender, const void *data, const int32_t status);
 } OXLPalEvent;
 
 #endif

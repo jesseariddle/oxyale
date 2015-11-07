@@ -12,7 +12,7 @@ OXLPalPingMsg const gPalPingMsg = { .palMsg.id = PAL_TX_PING_MSG, .palMsg.len = 
 
 void OXLInitPalPingMsg(OXLPalPingMsg *pingMsg)
 {
-    OXLLog("OXLInitPalPingMsg");
+    OXLLogDebug("OXLInitPalPingMsg");
     
     OXLPalPingMsg palPingMsgInit = { .palMsg.id = PAL_TX_PING_MSG, .palMsg.len = 0, .palMsg.ref = 0 };
     memcpy(pingMsg, &palPingMsgInit, sizeof(*pingMsg));
@@ -20,7 +20,7 @@ void OXLInitPalPingMsg(OXLPalPingMsg *pingMsg)
 
 OXLPalPingMsg *OXLCreatePalPingMsg(void)
 {
-    OXLLog("OXLCreatePalPingMsg");
+    OXLLogDebug("OXLCreatePalPingMsg");
     OXLPalPingMsg *pingMsg = OXLAlloc(sizeof(*pingMsg));
     OXLInitPalPingMsg(pingMsg);
     return pingMsg;
@@ -28,12 +28,12 @@ OXLPalPingMsg *OXLCreatePalPingMsg(void)
 
 void OXLDumpPalPingMsg(const OXLPalPingMsg *pingMsg)
 {
-    OXLLog("OXLDumpPalPingMsg");
+    OXLLogDebug("OXLDumpPalPingMsg");
     /* oxl_net_logon_t *logon = (oxl_net_logon_t *)logon_buf->base; */
     /* raw */
-    OXLLog("pingMsg->palMsg.id = 0x%x", pingMsg->palMsg.id);
-    OXLLog("pingMsg->palMsg.len = %d", pingMsg->palMsg.len);
-    OXLLog("pingMsg->palMsg.ref = 0x%x", pingMsg->palMsg.ref);
+    OXLLogDebug("pingMsg->palMsg.id = 0x%x", pingMsg->palMsg.id);
+    OXLLogDebug("pingMsg->palMsg.len = %d", pingMsg->palMsg.len);
+    OXLLogDebug("pingMsg->palMsg.ref = 0x%x", pingMsg->palMsg.ref);
 }
 
 void OXLDestroyPalPingMsg(OXLPalPingMsg *pingMsg)

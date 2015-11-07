@@ -14,7 +14,7 @@
 #define PAL_USERNAME_SZ_CAP 31
 #define PAL_WIZ_PASS_SZ_CAP 32
 #define PAL_SERVER_NAME_SZ_CAP 256
-#define PAL_RESERVED_LOGON_LEN 5
+#define PAL_RESERVED_LOGON_LEN 6
 
 /* typedef struct __attribute__((packed)) oxl_net_logon_s { */
 typedef struct OXLPalLogonMsgStruct {

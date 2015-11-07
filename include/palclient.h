@@ -32,14 +32,14 @@ typedef enum OXLPalClientStateEnum {
 typedef struct OXLPalClientStruct {
     OXLPalMsg msg;
     OXLPalCrypto crypto;
-    uv_tcp_t *conn;
+    uv_tcp_t *socket;
     uv_loop_t *loop;
-    uv_timer_t txTimer;
+    uv_timer_t *txTimer;
     /* uv_getaddrinfo_t resolver; */
     struct addrinfo *ai;
     uint32_t sockfd;
     OXLPalClientState state;
-    char *host;
+    char hostname[OXL_MAX_STR_SZ_CAP];
     uint16_t port;
     uint16_t roomId;
     char servername[PAL_SERVER_NAME_SZ_CAP];
@@ -57,13 +57,36 @@ typedef struct OXLPalClientStruct {
     OXLPalRoom currentRoom;
     int32_t serverVersion;
     int32_t permissions;
+    uint32_t idlePingTimerStartDelayInSec;
+    uint32_t idlePingTimerIntervalInSec;
     OXLPalPropStore propStore;
     OXLPalUser user;
     OXLPalEvent event;
 } OXLPalClient;
 
+OXLPalClient *OXLCreatePalClientWithLoop(uv_loop_t *uv_loop);
 OXLPalClient *OXLCreatePalClient(void);
 void OXLDestroyPalClient(OXLPalClient *client);
+void OXLPalClientStartRead(OXLPalClient *client);
+void OXLPalClientStopRead(OXLPalClient *client);
+
+void OXLPalClientSetParams(OXLPalClient *client,
+                           const char *username,
+                           const char *wizpass,
+                           const char *hostname,
+                           const uint16_t port,
+                           const uint16_t initialRoomId,
+                           const uint32_t idlePingTimerStartDelayInSec,
+                           const uint32_t idlePingTimerIntervalInSec);
+
+void OXLPalClientConnectWithPingTimer(OXLPalClient *client,
+                                      const char *username,
+                                      const char *wizpass,
+                                      const char *hostname,
+                                      const uint16_t port,
+                                      const uint16_t initialRoom,
+                                      const uint32_t idlePingStartDelayInSec,
+                                      const uint32_t idlePingIntervalInSec);
 
 void OXLPalClientConnect(OXLPalClient *client,
                          const char *username,
@@ -74,6 +97,7 @@ void OXLPalClientConnect(OXLPalClient *client,
 
 void OXLPalClientDisconnect(OXLPalClient *client);
 
+void OXLPalClientLogon(OXLPalClient *client);
 void OXLPalClientGotoRoom(OXLPalClient *client,
                           const uint16_t gotoRoomId,
                           const OXLCallback cbLeaveRoom,

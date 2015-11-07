@@ -15,7 +15,10 @@ void OXLInitPalMsg(OXLPalMsg *palMsg) {
 }
 
 void OXLDumpPalMsg(const OXLPalMsg *palMsg) {
-    OXLLog("palMsg->id = %d", palMsg->id);
-    OXLLog("palMsg->len = %d", palMsg->len);
-    OXLLog("palMsg->ref = %d", palMsg->ref);
+    char msgText[5] = { '\0' };
+    memcpy(&msgText, &palMsg->id, 4);
+    msgText[4] = '\0';
+    OXLLogDebug("palMsg->id = 0x%x (%s)", palMsg->id, msgText);
+    OXLLogDebug("palMsg->len = 0x%x (%u)", palMsg->len, palMsg->len);
+    OXLLogDebug("palMsg->ref = 0x%x", palMsg->ref);
 }

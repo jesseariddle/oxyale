@@ -11,11 +11,11 @@
 
 void OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg)
 {
-    OXLLog("sayMsg->palMsg.id = 0x%x\n", sayMsg->palMsg.id);
-    OXLLog("sayMsg->palMsg.len = %d\n", sayMsg->palMsg.len);
-    OXLLog("sayMsg->palMsg.ref = 0x%x\n", sayMsg->palMsg.ref);
-    OXLLog("sayMsg->len = %d\n", sayMsg->len);
-    OXLLog("sayMsg->msg = %s\n", sayMsg->msg);
+    OXLLogDebug("sayMsg->palMsg.id = 0x%x\n", sayMsg->palMsg.id);
+    OXLLogDebug("sayMsg->palMsg.len = %d\n", sayMsg->palMsg.len);
+    OXLLogDebug("sayMsg->palMsg.ref = 0x%x\n", sayMsg->palMsg.ref);
+    OXLLogDebug("sayMsg->len = %d\n", sayMsg->len);
+    OXLLogDebug("sayMsg->msg = %s\n", sayMsg->msg);
 }
 
 void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *plainText)
@@ -23,7 +23,7 @@ void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *pl
     /* oxl_say_t *say_msg = (oxl_say_t *)&buf.base; */
     char cipherText[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
     OXLPalCryptoEncrypt(client->crypto, plainText, cipherText);
-    OXLLog("plainText: \"%s\"\ncipherText: \"%s\"\n", plainText, cipherText);
+    OXLLogDebug("plainText: \"%s\"\ncipherText: \"%s\"\n", plainText, cipherText);
     uint16_t z = (uint16_t)strnlen(cipherText, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
     
     OXLPalSayMsg initPalSayMsg = { .palMsg.id = PAL_TX_SAY_MSG,
