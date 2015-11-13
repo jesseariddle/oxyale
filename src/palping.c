@@ -8,7 +8,7 @@
 
 #include <palping.h>
 
-OXLPalPingMsg const gPalPingMsg = { .palMsg.id = PAL_TX_PING_MSG, .palMsg.len = 0, .palMsg.ref = 0 };
+OXLPalPingMsg const kPalPingMsg = { .palMsg.id = PAL_TX_PING_MSG, .palMsg.len = 0, .palMsg.ref = 0 };
 
 void OXLInitPalPingMsg(OXLPalPingMsg *pingMsg)
 {

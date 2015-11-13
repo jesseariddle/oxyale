@@ -64,11 +64,17 @@ typedef struct OXLPalClientStruct {
     OXLPalEvent event;
 } OXLPalClient;
 
+void OXLSetupPalClientWithLoop(OXLPalClient *client, uv_loop_t *uv_loop);
+void OXLSetupPalClient(OXLPalClient *client);
+void OXLUnsetupPalClient(OXLPalClient *client);
+
 OXLPalClient *OXLCreatePalClientWithLoop(uv_loop_t *uv_loop);
 OXLPalClient *OXLCreatePalClient(void);
 void OXLDestroyPalClient(OXLPalClient *client);
+/*
 void OXLPalClientStartRead(OXLPalClient *client);
 void OXLPalClientStopRead(OXLPalClient *client);
+*/
 
 void OXLPalClientSetParams(OXLPalClient *client,
                            const char *username,
@@ -99,14 +105,13 @@ void OXLPalClientDisconnect(OXLPalClient *client);
 
 void OXLPalClientLogon(OXLPalClient *client);
 void OXLPalClientGotoRoom(OXLPalClient *client,
-                          const uint16_t gotoRoomId,
-                          const OXLCallback cbLeaveRoom,
-                          const OXLCallback cbJoinRoom);
+                          const uint16_t gotoRoomId);
 
-void OXLPalClientJoinRoom(OXLPalClient *client, const uint16_t gotoRoomId, const OXLCallback callback);
-void OXLPalClientLeaveRoom(OXLPalClient *client, const OXLPalRoom *room, const OXLCallback callback);
-void OXLPalClientSay(OXLPalClient *client, const char *plainText, const OXLCallback callback);
-void OXLPalClientGetRoomList(OXLPalClient *client, const OXLCallback callback);
+void OXLPalClientJoinRoom(OXLPalClient *client, const uint16_t gotoRoomId);
+void OXLPalClientLeaveRoom(OXLPalClient *client, const OXLPalRoom *room);
+void OXLPalClientSay(OXLPalClient *client, const char *plainText);
+void OXLPalClientGetRoomList(OXLPalClient *client);
+void OXLPalClientGetUserList(OXLPalClient *client);
 
 void OXLPalClientSendAndRetainMsg(OXLPalClient *client, const void *msg, const OXLCallback callback);
 void OXLPalClientSendAndDestroyMsg(OXLPalClient *client, void *msg, const OXLCallback callback);

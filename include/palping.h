@@ -20,6 +20,6 @@ void OXLDumpPalPingMsg(const OXLPalPingMsg *pingMsg);
 OXLPalPingMsg *OXLCreatePalPingMsg(void);
 void OXLDestroyPalPingMsg(OXLPalPingMsg *pingMsg);
 
-extern OXLPalPingMsg const gPalPingMsg;
+extern OXLPalPingMsg const kPalPingMsg;
 
 #endif

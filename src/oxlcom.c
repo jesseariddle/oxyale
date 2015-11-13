@@ -302,7 +302,7 @@ void OXLAfterResolveHostname_(uv_getaddrinfo_t *req, int32_t status, struct addr
 void OXLResolveHostname(void *sender, const char *hostname, const uint16_t port, const OXLCallback oc)
 {
     OXLLogDebug("ResolveHostname");
-
+    
     /* size_t usernameLen = strlen(username) + 1; */
     /* size_t wizpassLen = strlen(wizpass) + 1; */
     
