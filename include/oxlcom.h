@@ -28,6 +28,18 @@
 
 typedef unsigned char byte;
 typedef void (*OXLCallback)(void *sender, const void *data, const int32_t status);
+typedef struct OXLListItemStruct OXLListItem;
+/* typedef struct OXLListStruct OXLList; */
+
+typedef struct OXLListItemStruct {
+    void *data;
+    OXLListItem *next;
+} OXLListItem;
+
+typedef struct OXLListStruct {
+    size_t size;
+    OXLListItem *head;
+} OXLList;
 
 typedef struct OXLCallbackBatonStruct {
     OXLCallback callback;
@@ -75,6 +87,13 @@ void OXLDestroyTimerBaton(OXLTimerBaton *tb);
 void OXLWriteBuf(uv_stream_t *dest, size_t len, uv_buf_t buf, uv_write_cb callback);
 void OXLWrite(uv_stream_t *dest, OXLWriteBaton *wb, uv_write_cb callback);
 */
+
+OXLList *OXLCreateList();
+void OXLDestroyList(OXLList *list);
+void OXLListRemoveAll(OXLList *list);
+void OXLListAppend(OXLList *list, OXLListItem *item);
+void OXLListAppendList(OXLList *list, OXLList *listToAppend);
+OXLListItem *OXLListFirst(OXLList *list);
 
 /* returns resolved ip address in data param of callback if status == 0 */
 void OXLResolveHostname(void *sender, const char *hostname, uint16_t port, OXLCallback ocb);

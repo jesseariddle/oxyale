@@ -19,9 +19,7 @@
 #include <palgotoroom.h>
 #include <palsaybubble.h>
 #include <palsay.h>
-#include <palping.h>
 #include <paljoinroom.h>
-#include <palleaveroom.h>
 
 /*
 #include <stdlib.h>
@@ -130,7 +128,10 @@ OXLPalClientLogonEvent_(void *sender, const void *data, const int32_t status)
         OXLLogDebug("ERROR. Logon write failure. STATE_DISCONNECTED is now true.");
         client->state = STATE_DISCONNECTED;
         /* uv_close((uv_handle_t *)client->conn, NULL); */
-    } else if (0 <= status) {
+    } else {
+        if (0 < status) {
+            OXLLogDebug("Warnings occurred during logon.");
+        }
         OXLLogDebug("Logon write successful. STATE_CONNECTED is now true.");
         client->state = STATE_CONNECTED;
     }
@@ -141,14 +142,14 @@ OXLPalClientLogonEvent_(void *sender, const void *data, const int32_t status)
 }
 
 /* static */ void
-OXLPalClientLogon_(OXLPalClient *client, const uint32_t size, const uint32_t refId)
+OXLPalClientLogon_(OXLPalClient *client, const uint32_t size, const uint16_t refId)
 {
     OXLLogDebug("OXLPalaceLogon(client: 0x%x, size: 0x%x, refId: 0x%x)", (uint32_t)client, size, refId);
     client->currentRoom.userId = refId;
     
     OXLPalLogonMsg *logonMsg = OXLCreatePalLogonMsg(client->username,
                                                     client->wizpass,
-                                                    client->roomId,
+                                                    client->desiredRoomId,
                                                     client->regCRC,
                                                     client->regCounter,
                                                     client->puidCRC,
@@ -158,6 +159,12 @@ OXLPalClientLogon_(OXLPalClient *client, const uint32_t size, const uint32_t ref
     OXLDumpRawBufWithSize((byte *)logonMsg, sizeof(*logonMsg));
     
     OXLPalClientSendAndDestroyMsg_(client, logonMsg, OXLPalClientLogonEvent_);
+}
+
+/* static */ void
+OXLPalClientAlternateLogon_(OXLPalClient *client, const uint32_t size, uint16_t refId)
+{
+    /* OXLPalAltLogonMsg *logonMsg = OXLCreatePalLogonMsg(); */
 }
 
 /* uv_timer_cb */
@@ -173,13 +180,10 @@ OXLPalClientTimerPingServer_(uv_timer_t *timer)
     OXLLogDebug("Pinging server.");
     
     /* We should ping the server */
-    OXLPalClientSendAndRetainMsg(client, &kPalPingMsg, NULL);
-    
-    /* OXLPalClientSendAndRetainMsg_(client, (void *)&gPalPingMsg, tb->cb.callback); */
-    /* OXLPalClientSendAndRetainMsg(client, (void *)&gPalPingMsg, client->event.PalPingEvent); */
-    if (NULL != client->event.AfterPalPingEvent) {
-        client->event.AfterPalPingEvent(client, (void *)&kPalPingMsg, 0);
-    }
+    /* OXLPalClientSendAndRetainMsg(client, &kPalPingMsg, NULL); */
+    OXLPalClientSendAndDestroyMsg_(client,
+                                   OXLCreatePalMsg(PAL_TX_PING_MSG, client->user.id),
+                                   client->event.AfterPalPingEvent);
 }
 
 static void
@@ -199,10 +203,19 @@ OXLPalClientStopTxTimer_(OXLPalClient *client)
     uv_timer_stop(client->txTimer);
 }
 
-
-void OXLInitPalClient(OXLPalClient *client, uv_loop_t *uv_loop)
+static void
+OXLPalClientReset_(OXLPalClient *client)
 {
-    client->loop = uv_loop;
+    /* stop playing audio */
+    
+    client->isNeedingToRunSignonHandlers = TRUE;
+    client->isWaitingForMore = FALSE;
+    client->state = STATE_DISCONNECTED;
+    
+    /* strlcpy(client->currentRoom.name, "", PAL_ROOM_NAME_SZ_CAP); */
+    /* OXLClearList(&client->currentRoom.users); */
+    OXLListRemoveAll(&client->userList);
+    OXLListRemoveAll(&client->roomList);
     
     client->puidChangedFlag = 0;
     client->puidCounter = 0xf5dc385e;
@@ -232,6 +245,13 @@ void OXLInitPalClient(OXLPalClient *client, uv_loop_t *uv_loop)
     client->event.AfterPalServerInfoEvent = NULL;
     client->event.AfterPalXTalkEvent = NULL;
 }
+                                                       
+void OXLInitPalClient(OXLPalClient *client, uv_loop_t *uv_loop)
+{
+    client->loop = uv_loop;
+    
+    OXLPalClientReset_(client);
+}
 
 void
 OXLSetupPalClientWithLoop(OXLPalClient *client, uv_loop_t *uv_loop)
@@ -258,10 +278,20 @@ OXLUnsetupPalClient(OXLPalClient *client)
  **************************************************************/
 
 /* static */ void
-OXLPalClientHandleAltLogon_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleAllUsers_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+{
+    if (NULL != client->event.AfterPalAllUsersEvent) {
+        client->event.AfterPalAllUsersEvent(client, buf->base, msgLen);
+    }
+}
+
+/* static */ void
+OXLPalClientHandleAltLogon_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalLogonMsg *altLogonMsg = (OXLPalLogonMsg *)buf->base;
-    if (altLogonMsg->puidCounter != client->puidCounter || altLogonMsg->puidCRC != client->puidCRC) {
+    if (altLogonMsg->puidCounter != client->puidCounter ||
+        altLogonMsg->puidCRC != client->puidCRC) {
+        
         OXLLogDebug("PUID changed by server.");
         client->puidCRC = altLogonMsg->puidCRC;
         client->puidCounter = altLogonMsg->puidCounter;
@@ -281,7 +311,7 @@ OXLPalClientHandleAltLogon_(OXLPalClient *client, const uint32_t msgLen, const u
  */
 
 /* static */ void
-OXLPalClientHandleConnErr_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef)
+OXLPalClientHandleConnErr_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
 {
     OXLLogDebug("HandleConnErr");
     switch (msgRef) {
@@ -346,7 +376,7 @@ OXLPalClientHandleConnErr_(OXLPalClient *client, const uint32_t msgLen, const ui
 }
 
 /* static */ void
-OXLPalClientHandlePong_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef)
+OXLPalClientHandlePong_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
 {
     if (NULL != client->event.AfterPalPongEvent) {
         client->event.AfterPalPongEvent(client, NULL, 0);
@@ -354,7 +384,15 @@ OXLPalClientHandlePong_(OXLPalClient *client, const uint32_t msgLen, const uint3
 }
 
 /* static */ void
-OXLPalClientHandleServerInfo_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleRoomList_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+{
+    if (NULL != client->event.AfterPalRoomListEvent) {
+        client->event.AfterPalRoomListEvent(client, buf->base, msgLen);
+    }
+}
+
+/* static */ void
+OXLPalClientHandleServerInfo_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalServerInfoMsg *serverInfo = (OXLPalServerInfoMsg *)buf;
     client->permissions = serverInfo->permissions;
@@ -367,7 +405,7 @@ OXLPalClientHandleServerInfo_(OXLPalClient *client, const uint32_t msgLen, const
 }
 
 /* static */ void
-OXLPalClientHandleServerVersion_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleServerVersion_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLLogDebug("HandleServerVersion");
     
@@ -382,7 +420,7 @@ OXLPalClientHandleServerVersion_(OXLPalClient *client, const uint32_t msgLen, co
 }
 
 /* static */ void
-OXLPalClientHandleRecvUserStatus_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleRecvUserStatus_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalUser *user = (OXLPalUser *)buf->base;
     
@@ -394,13 +432,13 @@ OXLPalClientHandleRecvUserStatus_(OXLPalClient *client, const uint32_t msgLen, c
 }
 
 /* static */ void
-OXLPalClientHandleMaxUsersLoggedOn_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleMaxUsersLoggedOn_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     /* TODO emit user logged on and max received event signal */
 }
 
 /* static */ void
-OXLPalClientHandleXTalk_(OXLPalClient *client, const uint32_t msgLen, const uint32_t msgRef, const uv_buf_t *buf)
+OXLPalClientHandleXTalk_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     char *cipherText = buf->base;
     char *plainText = OXLAlloc(strnlen(buf->base, OXL_MAX_STR_SZ_CAP)); /* buf->len? */
@@ -433,7 +471,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
         /* endian test follows in switch statement */
         /* *(int *)buf->base; */
         uint32_t msgLen;
-        uint32_t msgRef;
+        uint16_t msgRef;
         
         switch (msgId) {
             case PAL_RX_UNKNOWN_SERVER:
@@ -444,7 +482,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
                 OXLLogDebug("Server is little endian.");
                 /* TODO will a server EVER send little endian data? */
                 /* Big endian is standard for network communication. */
-                client->serverIsBigEndianFlag = 0;
+                client->isServerBigEndian = FALSE;
                 /* TODO need to accomodate for endianness? */
                 /* i.e. little endian server, big endian client. */
                 msgLen = msg->len;
@@ -454,7 +492,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
                 break;
             case PAL_RX_BIG_ENDIAN_SERVER: /* MSG_TIYID */
                 OXLLogDebug("Server is big endian.");
-                client->serverIsBigEndianFlag = 1;
+                client->isServerBigEndian = TRUE;
                 msgLen = msg->len; /* ntohl(header->msgLen); */
                 msgRef = msg->ref; /* ntohl(header->msgRef); */
                 OXLPalClientLogon_(client, msgLen, msgRef);
@@ -609,9 +647,11 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
                     break;
                 case PAL_RX_GOT_REPLY_OF_ALL_USERS:
                     OXLLogDebug("Read message GOT_REPLY_OF_ALL_USERS.");
+                    OXLPalClientHandleAllUsers_(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_GOT_ROOM_LIST:
                     OXLLogDebug("Read message GOT_ROOM_LIST.");
+                    OXLPalClientHandleRoomList_(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_ROOM_DESCEND:
                     OXLLogDebug("Read message ROOM_DESCEND.");
@@ -810,7 +850,7 @@ OXLPalClientConnect_(OXLPalClient *client,
     
     strncpy(client->username, username, PAL_USERNAME_SZ_CAP);
     strlcpy(client->wizpass, wizpass, PAL_WIZPASS_SZ_CAP);
-    client->roomId = initialRoomId;
+    client->desiredRoomId = initialRoomId;
     
     strlcpy(client->hostname, hostname, OXL_MAX_STR_SZ_CAP);
     client->port = port;
@@ -872,7 +912,7 @@ OXLPalAfterLogon_(void *sender, const void *data, const int32_t status)
     client->usernameLen = logonMsg->usernameLen;
     strncpy(client->username, logonMsg->username, PAL_USERNAME_SZ_CAP); /* PString */
     strlcpy(client->wizpass, logonMsg->wizpass, PAL_WIZPASS_SZ_CAP); /* CString */
-    client->roomId = logonMsg->initialRoomId;
+    client->desiredRoomId = logonMsg->initialRoomId;
     
     OXLDestroyPalLogonMsg(logonMsg);
 }
@@ -922,7 +962,7 @@ OXLPalClientSetParams(OXLPalClient *client,
     client->usernameLen = strnlen(username, PAL_USERNAME_SZ_CAP);
     strncpy(client->username, username, PAL_USERNAME_SZ_CAP);
     strlcpy(client->wizpass, wizpass, PAL_WIZPASS_SZ_CAP);
-    client->roomId = initialRoomId;
+    client->desiredRoomId = initialRoomId;
     
     strlcpy(client->hostname, hostname, OXL_MAX_STR_SZ_CAP);
     client->port = port;
@@ -951,7 +991,7 @@ OXLPalClientLogon(OXLPalClient *client)
     OXLPalClientSendAndDestroyMsg(client,
                                   OXLCreatePalLogonMsg(client->username,
                                                        client->wizpass,
-                                                       client->roomId,
+                                                       client->desiredRoomId,
                                                        client->regCRC,
                                                        client->regCounter,
                                                        client->puidCRC,
@@ -1038,33 +1078,62 @@ OXLPalClientSay(OXLPalClient *client, const char *plainText)
         return;
     }
     
-    OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalSayMsg(client, plainText), client->event.AfterPalXTalkEvent);
+    OXLPalClientSendAndDestroyMsg_(client,
+                                   OXLCreatePalSayMsg(client, plainText),
+                                   client->event.AfterPalXTalkEvent);
 }
 
-void
-OXLPalClientJoinRoom(OXLPalClient *client, const uint16_t gotoRoomId)
+static void
+OXLPalClientJoinRoom_(OXLPalClient *client, const uint16_t gotoRoomId)
 {
     uint32_t userId = 0; /* stub */
     OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalGotoRoomMsg(userId, gotoRoomId), client->event.AfterPalJoinRoomEvent);
 }
 
-void
-OXLPalClientLeaveRoom(OXLPalClient *client, const OXLPalRoom *room)
+static void
+OXLPalClientLeaveRoom_(OXLPalClient *client, const OXLPalRoom *room)
 {
     /* Let all iptscrae ON LEAVE event handlers execute */
+    
+    
     /* emit leave room event signal */
-    OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalLeaveRoomMsg(client), client->event.AfterPalLeaveRoomEvent);
+    if (NULL != client->event.AfterPalLeaveRoomEvent) {
+        client->event.AfterPalLeaveRoomEvent(client, &client->currentRoom, 0);
+    }
 }
 
 void
 OXLPalClientGotoRoom(OXLPalClient *client, uint16_t gotoRoomId)
 {
-    if (client->state != STATE_CONNECTED || client->roomId == gotoRoomId) {
+    if (client->state != STATE_CONNECTED || client->currentRoom.id == gotoRoomId) {
         return;
     }
     
-    /* OXLPalClientLeaveRoom(client, cbOnLeave); */
-    OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalLeaveRoomMsg(client), client->event.AfterPalLeaveRoomEvent);
-    /* OXLPalClientJoinRoom(client, gotoRoomId, cbOnJoin); */
-    OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalJoinRoomMsg(client, gotoRoomId), client->event.AfterPalJoinRoomEvent);
+    OXLPalClientLeaveRoom_(client, &client->currentRoom);
+    OXLPalClientJoinRoom_(client, gotoRoomId);
+}
+
+void
+OXLPalClientGetRoomList(OXLPalClient *client)
+{
+    if (client->state != STATE_CONNECTED) {
+        return;
+    }
+    
+    OXLPalClientSendAndDestroyMsg_(client,
+                                   OXLCreatePalMsg(PAL_TX_REQUEST_ROOM_LIST_MSG, client->user.id),
+                                    client->event.AfterPalRequestRoomListEvent);
+    
+}
+
+void
+OXLPalClientGetUserList(OXLPalClient *client)
+{
+    if (client->state != STATE_CONNECTED) {
+        return;
+    }
+    
+    OXLPalClientSendAndDestroyMsg_(client,
+                                   OXLCreatePalMsg(PAL_TX_REQUEST_USER_LIST_MSG, client->user.id),
+                                   client->event.AfterPalRequestUserListEvent);
 }

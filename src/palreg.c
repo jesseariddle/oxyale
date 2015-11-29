@@ -38,7 +38,8 @@ uint32_t PAL_REG_CRC_MASK_[] = {
 
 /* Test code: 9YAT-C8MM-GJVZL */
 
-static inline uint32_t OXLPalRegComputeLicenseCRC(const uint32_t seed)
+static inline uint32_t
+OXLPalRegComputeLicenseCRC(const uint32_t seed)
 {
     uint32_t s, crc = PAL_REG_CRC_MAGIC;
     /*
@@ -53,12 +54,14 @@ static inline uint32_t OXLPalRegComputeLicenseCRC(const uint32_t seed)
     return crc;
 }
 
-static inline uint32_t OXLPalRegComputeLicenseCounter(const uint32_t seed, const uint32_t crc)
+static inline uint32_t
+OXLPalRegComputeLicenseCounter(const uint32_t seed, const uint32_t crc)
 {
     return (seed ^ PAL_REG_MAGIC_LONG) ^ crc;
 }
 
-void OXLPalRegGenerate(OXLPalReg *reg)
+void
+OXLPalRegGenerate(OXLPalReg *reg)
 {
     uint32_t seed = (uint32_t)time(NULL);
     uint32_t crc = OXLPalRegComputeLicenseCRC(seed);
@@ -66,7 +69,8 @@ void OXLPalRegGenerate(OXLPalReg *reg)
     reg->counter = OXLPalRegComputeLicenseCounter(seed, crc);
 }
 
-int32_t OXLPalRegTrimStringLen(const char *str)
+int32_t
+OXLPalRegTrimStringLen(const char *str)
 {
     size_t i, j, len = strnlen(str, PAL_REG_STR_LEN);
     uint32_t k = 0;
@@ -77,7 +81,8 @@ int32_t OXLPalRegTrimStringLen(const char *str)
     return k;
 }
 
-void OXLPalRegTrimString(const char *regString, char *trimmedRegString)
+void
+OXLPalRegTrimString(const char *regString, char *trimmedRegString)
 {
     size_t i, j, k = 0, z = strnlen(regString, PAL_REG_STR_LEN);
     int8_t isValid;
@@ -93,7 +98,8 @@ void OXLPalRegTrimString(const char *regString, char *trimmedRegString)
     } trimmedRegString[k] = '\0';
 }
 
-static inline uint32_t OXLPalRegConvertASCIIToCode(const char ch)
+static inline uint32_t
+OXLPalRegConvertASCIIToCode(const char ch)
 {
     uint32_t code = -1;
     uint32_t i;
@@ -106,7 +112,8 @@ static inline uint32_t OXLPalRegConvertASCIIToCode(const char ch)
     return code;
 }
 
-void OXLPalRegStringToReg(const char *trimmedRegString, OXLPalReg *reg)
+void
+OXLPalRegStringToReg(const char *trimmedRegString, OXLPalReg *reg)
 {
     size_t pos = 0, ocnt = 0, nbits = 64, i = 0;
     int16_t sn = 0, mask = 0x0080;
@@ -133,7 +140,8 @@ void OXLPalRegStringToReg(const char *trimmedRegString, OXLPalReg *reg)
     reg->counter = si[1];
 }
 
-void OXLPalPrintReg(const OXLPalReg *regcode)
+void
+OXLPalPrintReg(const OXLPalReg *regcode)
 {
     fprintf(stderr, "regcode->counter: %u\n", regcode->counter);
     fprintf(stderr, "regcode->CRC: %u\n", regcode->crc);

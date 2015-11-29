@@ -14,7 +14,6 @@
 #include "palcrypto.h"
 #include "palroom.h"
 #include "palevent.h"
-#include "palping.h"
 
 /*enum PalConnectionStateEnum { */
 /*    c_busy, */ /* Busy; waiting for incoming data or for a write to complete. */
@@ -39,9 +38,12 @@ typedef struct OXLPalClientStruct {
     struct addrinfo *ai;
     uint32_t sockfd;
     OXLPalClientState state;
+    OXLList userList;
+    OXLList roomList;
+    int32_t isNeedingToRunSignonHandlers;
     char hostname[OXL_MAX_STR_SZ_CAP];
     uint16_t port;
-    uint16_t roomId;
+    uint16_t desiredRoomId;
     char servername[PAL_SERVER_NAME_SZ_CAP];
     int16_t usernameLen;
     char username[PAL_USERNAME_SZ_CAP];
@@ -52,8 +54,8 @@ typedef struct OXLPalClientStruct {
     int32_t puidCRC;
     int32_t regCounter;
     int32_t regCRC;
-    int32_t serverIsBigEndianFlag;
-    int32_t waitingForMore;
+    int32_t isServerBigEndian;
+    int32_t isWaitingForMore;
     OXLPalRoom currentRoom;
     int32_t serverVersion;
     int32_t permissions;

@@ -91,7 +91,7 @@
 #define                 PAL_RX_ROOM_DESCEND 0x656E6472
 #define                     PAL_RX_USER_NEW 0x6E707273
 
-#define                     PAL_RX_PONG_MSG 0x706F6E67
+#define                     PAL_RX_PONG_MSG 0x706F6E67  /* pong */
 
 
 #define                        PAL_RX_XTALK 0x78746C6B
@@ -132,10 +132,10 @@
 
 /* outgoing messages */
 
-#define                      PAL_TX_BYE_MSG 0x6279652
-#define                     PAL_TX_PING_MSG 0x70696E67
-#define                      PAL_TX_SAY_MSG 0x78746C6B
-#define                  PAL_TX_WHISPER_MSG 0x78776973
+#define                      PAL_TX_BYE_MSG 0x62796520  /* bye  */
+#define                     PAL_TX_PING_MSG 0x70696E67  /* ping */
+#define                      PAL_TX_SAY_MSG 0x78746C6B  /* xtlk */
+#define                  PAL_TX_WHISPER_MSG 0x78776973  /* xwis */
 #define                     PAL_TX_MOVE_MSG 0x754C6F63
 #define               PAL_TX_USER_COLOR_MSG 0x75737243
 #define                PAL_TX_USER_FACE_MSG 0x75737246
@@ -150,8 +150,8 @@
 #define                PAL_TX_DOOR_LOCK_MSG 0x6C6F636B
 #define              PAL_TX_DOOR_UNLOCK_MSG 0x756E6C6F
 #define                     PAL_TX_ROOM_MSG 0x30C6015D
-#define                PAL_TX_SUPERUSER_MSG 0x73757372
-#define                    PAL_TX_LOGON_MSG 0x72656769
+#define                PAL_TX_SUPERUSER_MSG 0x73757372  /* susr */
+#define                    PAL_TX_LOGON_MSG 0x72656769  /* regi */
 #define                PAL_TX_PROP_MOVE_MSG 0x6D507270
 #define              PAL_TX_PROP_DELETE_MSG 0x64507270
 #define                 PAL_TX_PROP_NEW_MSG 0x6E507270
@@ -160,7 +160,7 @@
 #define                 PAL_TX_ROOM_MSG_MSG 0x726D7367
 #define                 PAL_TX_SUSR_MSG_MSG 0x736D7367
 #define             PAL_TX_AUTHRESPONSE_MSG 0x61757472
-#define                     PAL_TX_DRAW_MSG 0x64726177
+#define                     PAL_TX_DRAW_MSG 0x64726177  /* draw */
 
 #define PAL_HEADER_FIELDS \
 /* public */ \
@@ -172,8 +172,11 @@ typedef struct OXLPalMsgStruct {
     PAL_HEADER_FIELDS
 } OXLPalMsg;
 
-void OXLInitPalMsg(OXLPalMsg *palMsg);
+OXLPalMsg *OXLCreatePalMsg(uint32_t id, uint32_t ref);
 void OXLDumpPalMsg(const OXLPalMsg *palMsg);
+void OXLInitPalMsg(OXLPalMsg *palMsg, uint32_t id, uint32_t len, uint32_t ref);
+
+extern OXLPalMsg const kPalPingMsg;
 
 #undef PAL_HEADER_FIELDS /* don't export */
 

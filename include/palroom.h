@@ -84,6 +84,7 @@ typedef struct OXLPalRoomStruct {
 void OXLInitPalRoom(OXLPalRoom *room);
 void OXLPalFinishSelectedUserChanged(OXLPalUser *user);
 
-void OXLMakePalMsgToRoom(OXLPalRoom *room, const byte *data, const uint refID);
+/* void OXLCreatePalMsgToRoom(OXLPalRoom *room, const byte *data, const uint refID); */
+/* void */
 
 #endif

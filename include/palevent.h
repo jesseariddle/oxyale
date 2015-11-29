@@ -46,6 +46,7 @@
  */
 
 typedef struct OXLPalEventStruct {
+    void (*AfterPalAllUsersEvent)(void *sender, const void *data, const int32_t size);
     void (*AfterPalAuthRequestEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalConnectEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalDisconnectEvent)(void *sender, const void *data, const int32_t status);
@@ -57,8 +58,11 @@ typedef struct OXLPalEventStruct {
     void (*AfterPalOpenSocketEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalPingEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalPongEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalRequestRoomListEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalRequestUserListEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalResolveEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalRoomChangeEvent)(void *sender, const void *data, const int32_t status);
+    void (*AfterPalRoomListEvent)(void *sender, const void *data, const int32_t size);
     void (*AfterPalSecurityEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalServerInfoEvent)(void *sender, const void *data, const int32_t status);
     void (*AfterPalServerVerEvent)(void *sender, const void *data, const int32_t status);

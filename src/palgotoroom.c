@@ -10,7 +10,8 @@
 #include <palcom.h>
 #include <palgotoroom.h>
 
-void OXLInitPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg, uint32_t userId, uint16_t roomId)
+void
+OXLInitPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg, uint32_t userId, uint16_t roomId)
 {
     gotoRoomMsg->palMsg.id = PAL_TX_GOTO_ROOM_MSG;
     gotoRoomMsg->palMsg.len = sizeof(roomId);
@@ -18,14 +19,16 @@ void OXLInitPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg, uint32_t userId, uint
     gotoRoomMsg->roomId = roomId;
 }
 
-OXLPalGotoRoomMsg *OXLCreatePalGotoRoomMsg(uint32_t userId, uint16_t roomId)
+OXLPalGotoRoomMsg *
+OXLCreatePalGotoRoomMsg(uint32_t userId, uint16_t roomId)
 {
-    OXLPalGotoRoomMsg *gotoRoomMsg = malloc(sizeof(*gotoRoomMsg));
+    OXLPalGotoRoomMsg *gotoRoomMsg = OXLAlloc(sizeof(*gotoRoomMsg));
     OXLInitPalGotoRoomMsg(gotoRoomMsg, userId, roomId);
     return gotoRoomMsg;
 }
 
-void OXLDestroyPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg)
+void
+OXLDestroyPalGotoRoomMsg(OXLPalGotoRoomMsg *gotoRoomMsg)
 {
-    free(gotoRoomMsg);
+    OXLFree(gotoRoomMsg);
 }

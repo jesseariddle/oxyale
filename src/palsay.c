@@ -9,7 +9,8 @@
 #include <oxlcom.h>
 #include <palsay.h>
 
-void OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg)
+void
+OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg)
 {
     OXLLogDebug("sayMsg->palMsg.id = 0x%x\n", sayMsg->palMsg.id);
     OXLLogDebug("sayMsg->palMsg.len = %d\n", sayMsg->palMsg.len);
@@ -18,7 +19,8 @@ void OXLDumpPalSayMsg(const OXLPalSayMsg *sayMsg)
     OXLLogDebug("sayMsg->msg = %s\n", sayMsg->msg);
 }
 
-void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *plainText)
+void
+OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *plainText)
 {
     /* oxl_say_t *say_msg = (oxl_say_t *)&buf.base; */
     char cipherText[PAL_CRYPTO_CIPHERTEXT_SZ_CAP];
@@ -36,7 +38,8 @@ void OXLInitPalSayMsg(OXLPalSayMsg *sayMsg, OXLPalClient *client, const char *pl
     strlcpy((char *)&sayMsg->msg, cipherText, PAL_CRYPTO_CIPHERTEXT_SZ_CAP);
 }
 
-OXLPalSayMsg *OXLCreatePalSayMsg(OXLPalClient *client, const char *plainText)
+OXLPalSayMsg *
+OXLCreatePalSayMsg(OXLPalClient *client, const char *plainText)
 {
     OXLPalSayMsg *sayMsg = malloc(sizeof(*sayMsg));
     OXLInitPalSayMsg(sayMsg, client, plainText);
