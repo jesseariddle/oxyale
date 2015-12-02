@@ -14,6 +14,16 @@
 #include "palprop.h"
 #include "palview.h"
 
+#define RF_LOCKED       0x0001
+#define RF_PRIVATE      0x0002
+#define RF_NOPAINT      0x0004
+#define RF_CLOSED       0x0008
+#define RF_NOCYBORG     0x0010
+#define RF_HIDDEN       0x0020
+#define RF_NOGUESTS     0x0040
+#define RF_WIZARDSONLY  0x0080
+#define RF_DROPZONE     0x0100
+
 typedef struct OXLPalRoomMsgStruct {
     OXLPalMsg palMsg;
     int32_t roomFlags;
@@ -68,6 +78,13 @@ typedef struct OXLPalRoomStruct {
     char *statusMessage;
     int32_t statusDisappearTimer;
 } OXLPalRoom;
+
+typedef struct OXLPalRoomListItemStruct {
+    int32_t id;
+    int16_t flags;
+    int16_t nUsers;
+    OXLP8String name;
+} OXLPalRoomListItem;
 
 /*
  uint oxl_net_room_len(const unsigned char *data);

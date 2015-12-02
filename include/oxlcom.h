@@ -21,8 +21,8 @@
 #define NO 0
 #endif
 
-#define OXL_MAX_STR_SZ_CAP 4096
-#define OXL_IP_PORT_SZ_CAP 6
+#define OXL_MAX_STR_SZ_CAP  4096
+#define OXL_IP_PORT_SZ_CAP  6
 #define OXL_IP4_ADDR_SZ_CAP 16
 #define OXL_IP6_ADDR_SZ_CAP 46
 
@@ -63,7 +63,7 @@ typedef struct OXLTimerBatonStruct {
 typedef struct OXLP8StringStruct {
     uint8_t len;
     char *base;
-} OXLPString;
+} OXLP8String;
 
 void OXLLogDebug(const char *fmt, ...);
 void OXLLogError(const char *fmt, ...);
@@ -88,12 +88,18 @@ void OXLWriteBuf(uv_stream_t *dest, size_t len, uv_buf_t buf, uv_write_cb callba
 void OXLWrite(uv_stream_t *dest, OXLWriteBaton *wb, uv_write_cb callback);
 */
 
-OXLList *OXLCreateList();
+void OXLDestroyListItem(OXLListItem *listItem);
+void OXLInitListItem(OXLListItem *listItem, void *data);
+OXLListItem *OXLCreateListItem(void *data);
 void OXLDestroyList(OXLList *list);
+void OXLInitList(OXLList *list);
+OXLList *OXLCreateList();
 void OXLListRemoveAll(OXLList *list);
-void OXLListAppend(OXLList *list, OXLListItem *item);
-void OXLListAppendList(OXLList *list, OXLList *listToAppend);
+void OXLListInsert(OXLList *list, OXLListItem *listItem, size_t index);
+void OXLListAdd(OXLList *list, OXLListItem *listItem);
+void OXLListAddList(OXLList *list, OXLList *listToAdd);
 OXLListItem *OXLListFirst(OXLList *list);
+OXLList *OXLListRest(OXLList *list);
 
 /* returns resolved ip address in data param of callback if status == 0 */
 void OXLResolveHostname(void *sender, const char *hostname, uint16_t port, OXLCallback ocb);

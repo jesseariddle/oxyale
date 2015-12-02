@@ -28,18 +28,20 @@ void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
         .regCRC = regCRC,
         .regCounter = regCounter,
         .usernameLen = (uint8_t)strnlen(username, PAL_USERNAME_SZ_CAP),
-        .flags = PAL_AUXFLAGS_AUTHENTICATE | PAL_AUXFLAGS_WIN32,
+        .flags =
+            PAL_AUXFLAGS_AUTHENTICATE |
+            PAL_AUXFLAGS_WIN32,
         .puidCounter = puidCounter,
         .puidCRC = puidCRC,
-        .demoElapsed = 0,
-        .totalElapsed = 0,
-        .demoLimit = 0,
+        .demoElapsed = 0x00011940, /* 0 */
+        .totalElapsed = 0x00011940, /* 0 */
+        .demoLimit = 0x00011940, /* 0 */
         .initialRoomId = initialRoomId,
         .ulUploadRequestedProtocolVersion = 0,
-        .ulUploadCapabilities = PAL_ULCAPS_ASSETS_PALACE,
-        .ulDownloadCapabilities = PAL_DLCAPS_ASSETS_PALACE |                                        PAL_DLCAPS_FILES_PALACE | PAL_DLCAPS_FILES_HTTPSRVR,
-        .ul2DEngineCapabilities = 0,
-        .ul2DGraphicsCapabilities = 0,
+        .ulUploadCapabilities = PAL_LI_ULCAPS_ASSETS_PALACE | PAL_LI_ULCAPS_FILES_HTTP,
+        .ulDownloadCapabilities = PAL_LI_DLCAPS_ASSETS_PALACE | PAL_LI_DLCAPS_FILES_PALACE | PAL_LI_DLCAPS_FILES_HTTP | PAL_LI_DLCAPS_FILES_HTTP_EXTENDED,
+        .ul2DEngineCapabilities = PAL_LI_2DENGINECAP_PALACE,
+        .ul2DGraphicsCapabilities = PAL_LI_2DGRAPHCAP_GIF87,
         .ul3DEngineCapabilities = 0
     };
 
@@ -48,8 +50,8 @@ void OXLInitPalLogonMsg(OXLPalLogonMsg *logonMsg,
     
     /* does nothing, but is logged by server */
     /* strncpy(logonCmd->reserved, "OXYALE", 6); */
-    /* strncpy(logonCmd->reserved, "PC4232", 6); */
-    strncpy((char *)&logonMsgInit.reserved, "OPNPAL", PAL_RESERVED_LOGON_LEN);
+    strncpy((char *)&logonMsgInit.reserved, "PC4235", PAL_RESERVED_LOGON_LEN);
+    /* strncpy((char *)&logonMsgInit.reserved, "OPNPAL", PAL_RESERVED_LOGON_LEN);*/
 
     memcpy(logonMsg, &logonMsgInit, sizeof(*logonMsg));
 }

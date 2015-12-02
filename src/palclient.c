@@ -67,8 +67,8 @@ OXLPalClientAfterSendAndRetainMsg_(uv_write_t *write, const int32_t status)
     OXLFree(write);
 }
 
-OXLWriteBaton *
-OXLPalClientSendMsgInit_(OXLPalClient *client, const void *msg, const OXLCallback callback)
+static OXLWriteBaton *
+OXLPalClientSendMsgInit__(OXLPalClient *client, const void *msg, const OXLCallback callback)
 {
     const OXLPalMsg *palMsg = msg;
     
@@ -91,21 +91,21 @@ OXLPalClientSendMsgInit_(OXLPalClient *client, const void *msg, const OXLCallbac
 }
 
 static void
-OXLPalClientSendAndDestroyMsg_(OXLPalClient *client, void *msg, const OXLCallback callback)
+OXLPalClientSendAndDestroyMsg__(OXLPalClient *client, void *msg, const OXLCallback callback)
 {
-    OXLWriteBaton *owb = OXLPalClientSendMsgInit_(client, msg, callback);
+    OXLWriteBaton *owb = OXLPalClientSendMsgInit__(client, msg, callback);
     uv_write(&owb->write, (uv_stream_t *)client->socket, &owb->buf, 1, OXLPalClientAfterSendAndDestroyMsg_);
 }
 
 static void
-OXLPalClientSendAndRetainMsg_(OXLPalClient *client, const void *msg, const OXLCallback callback)
+OXLPalClientSendAndRetainMsg__(OXLPalClient *client, const void *msg, const OXLCallback callback)
 {
-    OXLWriteBaton *owb = OXLPalClientSendMsgInit_(client, msg, callback);
+    OXLWriteBaton *owb = OXLPalClientSendMsgInit__(client, msg, callback);
     uv_write(&owb->write, (uv_stream_t *)client->socket, &owb->buf, 1, OXLPalClientAfterSendAndRetainMsg_);
 }
 
 static void
-OXLPalClientStopRead_(OXLPalClient *client)
+OXLPalClientStopRead__(OXLPalClient *client)
 {
     OXLLogDebug("Stopping socket read.");
     uv_read_stop((uv_stream_t *)client->socket);
@@ -141,8 +141,8 @@ OXLPalClientLogonEvent_(void *sender, const void *data, const int32_t status)
     }
 }
 
-/* static */ void
-OXLPalClientLogon_(OXLPalClient *client, const uint32_t size, const uint16_t refId)
+static void
+OXLPalClientLogon__(OXLPalClient *client, const uint32_t size, const uint16_t refId)
 {
     OXLLogDebug("OXLPalaceLogon(client: 0x%x, size: 0x%x, refId: 0x%x)", (uint32_t)client, size, refId);
     client->currentRoom.userId = refId;
@@ -158,11 +158,11 @@ OXLPalClientLogon_(OXLPalClient *client, const uint32_t size, const uint16_t ref
     OXLDumpPalLogonMsg(logonMsg);
     OXLDumpRawBufWithSize((byte *)logonMsg, sizeof(*logonMsg));
     
-    OXLPalClientSendAndDestroyMsg_(client, logonMsg, OXLPalClientLogonEvent_);
+    OXLPalClientSendAndDestroyMsg__(client, logonMsg, OXLPalClientLogonEvent_);
 }
 
-/* static */ void
-OXLPalClientAlternateLogon_(OXLPalClient *client, const uint32_t size, uint16_t refId)
+static void
+OXLPalClientAlternateLogon__(OXLPalClient *client, const uint32_t size, uint16_t refId)
 {
     /* OXLPalAltLogonMsg *logonMsg = OXLCreatePalLogonMsg(); */
 }
@@ -181,13 +181,13 @@ OXLPalClientTimerPingServer_(uv_timer_t *timer)
     
     /* We should ping the server */
     /* OXLPalClientSendAndRetainMsg(client, &kPalPingMsg, NULL); */
-    OXLPalClientSendAndDestroyMsg_(client,
+    OXLPalClientSendAndDestroyMsg__(client,
                                    OXLCreatePalMsg(PAL_TX_PING_MSG, client->user.id),
                                    client->event.AfterPalPingEvent);
 }
 
 static void
-OXLPalClientStartTxTimer_(OXLPalClient *client)
+OXLPalClientStartTxTimer__(OXLPalClient *client)
 {
     OXLLogDebug("Starting ping timer.");
     uv_timer_start(client->txTimer,
@@ -197,16 +197,18 @@ OXLPalClientStartTxTimer_(OXLPalClient *client)
 }
 
 static void
-OXLPalClientStopTxTimer_(OXLPalClient *client)
+OXLPalClientStopTxTimer__(OXLPalClient *client)
 {
     OXLLogDebug("Stopping ping timer.");
     uv_timer_stop(client->txTimer);
 }
 
 static void
-OXLPalClientReset_(OXLPalClient *client)
+OXLInitPalClient__(OXLPalClient *client, uv_loop_t *uv_loop)
 {
     /* stop playing audio */
+    
+    client->loop = uv_loop;
     
     client->isNeedingToRunSignonHandlers = TRUE;
     client->isWaitingForMore = FALSE;
@@ -233,6 +235,7 @@ OXLPalClientReset_(OXLPalClient *client)
     client->wizpassLen = 0;
     memset(&client->wizpass, '\0', PAL_WIZPASS_SZ_CAP);
     
+    client->event.AfterPalAllUsersEvent = NULL;
     client->event.AfterPalAuthRequestEvent = NULL;
     client->event.AfterPalConnectEvent = NULL;
     client->event.AfterPalDisconnectEvent = NULL;
@@ -241,52 +244,104 @@ OXLPalClientReset_(OXLPalClient *client)
     client->event.AfterPalPingEvent = NULL;
     client->event.AfterPalPongEvent = NULL;
     client->event.AfterPalRoomChangeEvent = NULL;
+    client->event.AfterPalRoomListEvent = NULL;
     client->event.AfterPalSecurityEvent = NULL;
     client->event.AfterPalServerInfoEvent = NULL;
     client->event.AfterPalXTalkEvent = NULL;
 }
-                                                       
-void OXLInitPalClient(OXLPalClient *client, uv_loop_t *uv_loop)
+
+void
+OXLInitPalClient(OXLPalClient *client, uv_loop_t *uv_loop)
 {
-    client->loop = uv_loop;
+    OXLInitPalClient__(client, uv_loop);
+}
+
+static void
+OXLSetupPalClientWithLoop__(OXLPalClient *client, uv_loop_t *uv_loop)
+{
+    client->txTimer = (uv_timer_t *)OXLCreateTimerBaton(client, NULL, NULL);
     
-    OXLPalClientReset_(client);
+    OXLInitList(&client->roomList);
+    OXLInitList(&client->userList);
+    
+    OXLInitPalClient__(client, uv_loop);
 }
 
 void
 OXLSetupPalClientWithLoop(OXLPalClient *client, uv_loop_t *uv_loop)
 {
-    client->txTimer = (uv_timer_t *)OXLCreateTimerBaton(client, NULL, NULL);
-    OXLInitPalClient(client, uv_loop);
+    OXLSetupPalClientWithLoop__(client, uv_loop);
 }
 
 void
 OXLSetupPalClient(OXLPalClient *client)
 {
-    OXLSetupPalClientWithLoop(client, uv_default_loop());
+    OXLSetupPalClientWithLoop__(client, uv_default_loop());
+}
+
+static void
+OXLUnsetupPalClient__(OXLPalClient *client)
+{
+    OXLFree(client->txTimer);
 }
 
 void
 OXLUnsetupPalClient(OXLPalClient *client)
 {
-    OXLFree(client->txTimer);
+    OXLUnsetupPalClient__(client);
 }
 
+/* void uv_close_cb */
+/* OXLPalClientAfterDisconnect_(uv_handle_t *handle) */
+
+void /* OXLCallback */
+OXLPalClientDisconnectEvent_(void *sender, const void *data, const int32_t status)
+{
+    OXLPalClient *client = (OXLPalClient *)sender;
+    if (status < 0) {
+        OXLLogError("Error %d while disconnecting from Palace", status);
+    } else {
+        if (0 < status) {
+            /* completed with warnings */
+        }
+        OXLLogInfo("Disconnected from Palace with status %d", status);
+    }
+    
+    client->state = STATE_DISCONNECTED;
+}
+
+static void
+OXLPalClientDisconnect__(OXLPalClient *client)
+{
+    /* OXLLogDebug("Disconnecting from Palace %s", client->servername); */
+    OXLLogDebug("Disconnecting from Palace %s", client->hostname);
+    /* OXLPalClient *client = handle->data; */
+    /* oxl_client_t *client = (oxl_client_t *)handle->data; */
+    
+    /* Stop ping timer */
+    OXLPalClientStopTxTimer__(client);
+    
+    /* Stop reading from socket */
+    OXLPalClientStopRead__(client);
+    
+    client->socket->data = client;
+    OXLCloseSocket(client, client->socket, OXLPalClientDisconnectEvent_);
+}
 
 /**************************************************************
  * Private Event Handlers *************************************
  **************************************************************/
 
-/* static */ void
-OXLPalClientHandleAllUsers_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleAllUsers__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     if (NULL != client->event.AfterPalAllUsersEvent) {
         client->event.AfterPalAllUsersEvent(client, buf->base, msgLen);
     }
 }
 
-/* static */ void
-OXLPalClientHandleAltLogon_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleAltLogon__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalLogonMsg *altLogonMsg = (OXLPalLogonMsg *)buf->base;
     if (altLogonMsg->puidCounter != client->puidCounter ||
@@ -310,52 +365,54 @@ OXLPalClientHandleAltLogon_(OXLPalClient *client, const uint32_t msgLen, const u
  }
  */
 
-/* static */ void
-OXLPalClientHandleConnErr_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
+static void
+OXLPalClientHandleTerminate__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
 {
-    OXLLogDebug("HandleConnErr");
+    OXLPalClientDisconnect__(client);
+    
+    OXLLogDebug("HandleTerminate");
     switch (msgRef) {
-        case 0x04:
-        case 0x07:
+        case K_KilledByPlayer: /* 0x04 */
+        case K_KilledBySysop: /* 0x07 */
             OXLLogDebug("You have been killed.");
             break;
-        case 0x0d:
+        case K_BanishKill: /* 0x0d */
             OXLLogDebug("You have been kicked off the site.");
             break;
-        case 0x0b:
+        case K_DeathPenaltyActive: /* 0x0b */
             OXLLogDebug("Your death penalty is still active.");
             break;
-        case 0x0c:
+        case K_Banished: /* 0x0c */
             OXLLogDebug("You are not currently allowed on this site.");
             break;
-        case 0x06:
+        case K_Unresponsive: /* 0x06 */
             OXLLogDebug("Your connection was terminated due to inactivity");
             break;
-        case 0x03:
+        case K_Flood: /* 0x03 */
             OXLLogDebug("Your connection was terminated due to flooding.");
             break;
-        case 0x08:
+        case K_ServerFull: /* 0x08 */
             OXLLogDebug("This palace is currently full. Please try again later.");
             break;
-        case 0x0e:
+        case K_NoGuests: /* 0x0e */
             OXLLogDebug("Guests are not currently allowed on this site.");
             break;
-        case 0x05:
+        case K_ServerDown: /* 0x05 */
             OXLLogDebug("This palace was shut down by its operator. Try again later.");
             break;
-        case 0x09:
+        case K_InvalidSerialNumber: /* 0x09 */
             OXLLogDebug("You have an invalid serial number.");
             break;
-        case 0x0a:
+        case K_DuplicateUser: /* 0x0a */
             OXLLogDebug("There is another user using your serial number.");
             break;
-        case 0x0f:
+        case K_DemoExpired: /* 0x0f */
             OXLLogDebug("Your free demo has expired.");
             break;
-        case 0x10:
+        case K_Unknown: /* 0x10 */
             OXLLogDebug("Unknown error?");
             break;
-        case 0x02:
+        case K_CommError: /* 0x02 */
             OXLLogDebug("There has been a communications error.");
             break;
         default:
@@ -370,29 +427,40 @@ OXLPalClientHandleConnErr_(OXLPalClient *client, const uint32_t msgLen, const ui
     }
     
     /* emit connection error received event signal */
-    if (NULL != client->event.AfterPalConnectEvent) {
-        client->event.AfterPalConnectEvent(client, NULL, -1);
+    if (NULL != client->event.AfterPalDisconnectEvent) {
+        client->event.AfterPalDisconnectEvent(client, NULL, -1);
     }
 }
 
-/* static */ void
-OXLPalClientHandlePong_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
+static void
+OXLPalClientHandlePong__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef)
 {
     if (NULL != client->event.AfterPalPongEvent) {
         client->event.AfterPalPongEvent(client, NULL, 0);
     }
 }
 
-/* static */ void
-OXLPalClientHandleRoomList_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleRoomList__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
+    int32_t i;
+    OXLList *roomList;
+    OXLPalRoom *room = NULL; /* data; */
+    
+    OXLListRemoveAll(&client->roomList);
+    for (i = 0; i < msgLen; i++) {
+        room = NULL; /* next room */
+        
+        OXLListAdd(&client->roomList, OXLCreateListItem(room));
+    }
+    
     if (NULL != client->event.AfterPalRoomListEvent) {
         client->event.AfterPalRoomListEvent(client, buf->base, msgLen);
     }
 }
 
-/* static */ void
-OXLPalClientHandleServerInfo_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleServerInfo__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalServerInfoMsg *serverInfo = (OXLPalServerInfoMsg *)buf;
     client->permissions = serverInfo->permissions;
@@ -404,8 +472,8 @@ OXLPalClientHandleServerInfo_(OXLPalClient *client, const uint32_t msgLen, const
     }
 }
 
-/* static */ void
-OXLPalClientHandleServerVersion_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleServerVersion__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLLogDebug("HandleServerVersion");
     
@@ -419,8 +487,8 @@ OXLPalClientHandleServerVersion_(OXLPalClient *client, const uint32_t msgLen, co
     
 }
 
-/* static */ void
-OXLPalClientHandleRecvUserStatus_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleRecvUserStatus__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     OXLPalUser *user = (OXLPalUser *)buf->base;
     
@@ -431,14 +499,14 @@ OXLPalClientHandleRecvUserStatus_(OXLPalClient *client, const uint32_t msgLen, c
     /* TODO emit handle user status received event signal  */
 }
 
-/* static */ void
-OXLPalClientHandleMaxUsersLoggedOn_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleMaxUsersLoggedOn__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     /* TODO emit user logged on and max received event signal */
 }
 
-/* static */ void
-OXLPalClientHandleXTalk_(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
+static void
+OXLPalClientHandleXTalk__(OXLPalClient *client, const uint32_t msgLen, const uint16_t msgRef, const uv_buf_t *buf)
 {
     char *cipherText = buf->base;
     char *plainText = OXLAlloc(strnlen(buf->base, OXL_MAX_STR_SZ_CAP)); /* buf->len? */
@@ -456,8 +524,8 @@ OXLPalClientHandleXTalk_(OXLPalClient *client, const uint32_t msgLen, const uint
  * End Private Event Handlers *********************************
  **************************************************************/
 
-/* static */ void
-OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t buf)
+static void
+OXLPalClientHandshake__(OXLPalClient *client, const ssize_t nread, const uv_buf_t buf)
 {
     OXLLogDebug("Handshake");
     int32_t status;
@@ -487,7 +555,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
                 /* i.e. little endian server, big endian client. */
                 msgLen = msg->len;
                 msgRef = msg->ref;
-                OXLPalClientLogon_(client, msgLen, msgRef);
+                OXLPalClientLogon__(client, msgLen, msgRef);
                 status = 0;
                 break;
             case PAL_RX_BIG_ENDIAN_SERVER: /* MSG_TIYID */
@@ -495,7 +563,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
                 client->isServerBigEndian = TRUE;
                 msgLen = msg->len; /* ntohl(header->msgLen); */
                 msgRef = msg->ref; /* ntohl(header->msgRef); */
-                OXLPalClientLogon_(client, msgLen, msgRef);
+                OXLPalClientLogon__(client, msgLen, msgRef);
                 status = 0;
                 break;
             default:
@@ -516,45 +584,7 @@ OXLPalClientHandshake_(OXLPalClient *client, const ssize_t nread, const uv_buf_t
     }
 }
 
-/* uv_close_cb */
-/* OXLCallback */
-void
-/* OXLPalClientAfterDisconnect_(uv_handle_t *handle) */
-OXLPalClientDisconnectEvent_(void *sender, const void *data, const int32_t status)
-{
-    OXLPalClient *client = (OXLPalClient *)sender;
-    if (status < 0) {
-        OXLLogError("Error %d while disconnecting from Palace", status);
-    } else {
-        if (0 < status) {
-            /* completed with warnings */
-        }
-        OXLLogInfo("Disconnected from Palace with status %d", status);
-    }
-    
-    client->state = STATE_DISCONNECTED;
-}
-
-void
-OXLPalClientDisconnect_(OXLPalClient *client)
-{
-    /* OXLLogDebug("Disconnecting from Palace %s", client->servername); */
-    OXLLogDebug("Disconnecting from Palace %s", client->hostname);
-    /* OXLPalClient *client = handle->data; */
-    /* oxl_client_t *client = (oxl_client_t *)handle->data; */
-    
-    /* Stop ping timer */
-    OXLPalClientStopTxTimer_(client);
-    
-    /* Stop reading from socket */
-    OXLPalClientStopRead_(client);
-    
-    client->socket->data = client;
-    OXLCloseSocket(client, client->socket, OXLPalClientDisconnectEvent_);
-}
-
-/* uv_read_cb */
-void
+void /* uv_read_cb */
 OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t *buf)
 {
     OXLPalMsg *msg = (OXLPalMsg *)buf->base;
@@ -566,7 +596,7 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
     } else if (nread < 0) { /* error */
         OXLLogDebug("Read %s bytes. ERROR reading data, terminating connection.", nread);
         /* uv_close((uv_handle_t *)stream, NULL); */
-        OXLPalClientDisconnect_(client);
+        OXLPalClientDisconnect__(client);
     } else if (0 < nread) { /* else ? */
         /* we need to collect payloads then route the message (on a worker thread?) */
         /* we need to do this depending on the state of the connection */
@@ -577,7 +607,7 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
         
         if (client->state == STATE_HANDSHAKING) {
             OXLLogDebug("STATE_HANDSHAKING is true. Performing handshake.");
-            OXLPalClientHandshake_(client, nread, *buf);
+            OXLPalClientHandshake__(client, nread, *buf);
         } else if (client->state == STATE_CONNECTED) {
             /* fprintf(stderr,
              "--- DEBUG: reading data with STATE_CONNECTED true.\n"); */
@@ -611,27 +641,27 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
             switch (msgId) {
                 case PAL_RX_ALTERNATE_LOGON_REPLY:
                     OXLLogDebug("Read message ALTERNATE_LOGON_REPLY.");
-                    OXLPalClientHandleAltLogon_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleAltLogon__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_CONNECTION_ERROR:
                     OXLLogDebug("Read message CONNECTION_ERROR.");
-                    OXLPalClientHandleConnErr_(client, msgLen, msgRef);
+                    OXLPalClientHandleTerminate__(client, msgLen, msgRef);
                     break;
                 case PAL_RX_SERVER_VERSION:
                     OXLLogDebug("Read message SERVER_VERSION.");
-                    OXLPalClientHandleServerVersion_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleServerVersion__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_SERVER_INFO:
                     OXLLogDebug("DEBUG: Read message SERVER_INFO.");
-                    OXLPalClientHandleServerInfo_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleServerInfo__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_USER_STATUS:
                     OXLLogDebug("Read message USER_STATUS.");
-                    OXLPalClientHandleRecvUserStatus_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleRecvUserStatus__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_USER_LOGGED_ON_AND_MAX:
                     OXLLogDebug("Read message USER_LOGGED_ON_AND_MAX.");
-                    OXLPalClientHandleMaxUsersLoggedOn_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleMaxUsersLoggedOn__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_GOT_HTTP_SERVER_LOCATION:
                     OXLLogDebug("Read message GOT_HTTP_SERVER_LOCATION.");
@@ -647,11 +677,11 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
                     break;
                 case PAL_RX_GOT_REPLY_OF_ALL_USERS:
                     OXLLogDebug("Read message GOT_REPLY_OF_ALL_USERS.");
-                    OXLPalClientHandleAllUsers_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleAllUsers__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_GOT_ROOM_LIST:
                     OXLLogDebug("Read message GOT_ROOM_LIST.");
-                    OXLPalClientHandleRoomList_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleRoomList__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_ROOM_DESCEND:
                     OXLLogDebug("Read message ROOM_DESCEND.");
@@ -661,11 +691,11 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
                     break;
                 case PAL_RX_PONG_MSG:
                     OXLLogDebug("Read message PONG.");
-                    OXLPalClientHandlePong_(client, msgLen, msgRef);
+                    OXLPalClientHandlePong__(client, msgLen, msgRef);
                     break;
                 case PAL_RX_XTALK:
                     OXLLogDebug("Read message XTALK.");
-                    OXLPalClientHandleXTalk_(client, msgLen, msgRef, buf);
+                    OXLPalClientHandleXTalk__(client, msgLen, msgRef, buf);
                     break;
                 case PAL_RX_XWHISPER:
                     OXLLogDebug("Read message XWHISPER.");
@@ -769,13 +799,13 @@ OXLPalClientReadEvent_(uv_stream_t *stream, const ssize_t nread, const uv_buf_t 
 }
 
 static void
-OXLPalClientStartRead_(OXLPalClient *client)
+OXLPalClientStartRead__(OXLPalClient *client)
 {
     OXLLogDebug("Starting to read from socket.");
     uv_read_start((uv_stream_t *)client->socket, OXLAllocBuf, OXLPalClientReadEvent_);
 }
 
-void
+void /* OXLCallback */
 OXLPalClientOpenSocketEvent_(void *sender, const void *data, const int32_t status)
 {
     OXLPalClient *client = sender;
@@ -793,8 +823,8 @@ OXLPalClientOpenSocketEvent_(void *sender, const void *data, const int32_t statu
         
         client->state = STATE_HANDSHAKING;
         /* Start ping timer */
-        OXLPalClientStartTxTimer_(client);
-        OXLPalClientStartRead_(client);
+        OXLPalClientStartTxTimer__(client);
+        OXLPalClientStartRead__(client);
         /* OXLLogDebug("Socket opened to %s", client->hostname); */
     }
     
@@ -803,14 +833,13 @@ OXLPalClientOpenSocketEvent_(void *sender, const void *data, const int32_t statu
     }
 }
 
-void
-OXLPalClientOpenSocket(OXLPalClient *client, struct addrinfo *ai)
+static void
+OXLPalClientOpenSocket__(OXLPalClient *client, struct addrinfo *ai)
 {
     OXLOpenSocket(client, ai, OXLPalClientOpenSocketEvent_);
 }
 
-/* OXLCallback */
-void
+void /* OXLCallback */
 OXLPalClientResolveHostnameEvent_(void *sender, const void *data, const int32_t status)
 {
     OXLPalClient* client = sender;
@@ -822,7 +851,7 @@ OXLPalClientResolveHostnameEvent_(void *sender, const void *data, const int32_t 
         if (0 < status) {
             /* completed with warnings */
         }
-        OXLPalClientOpenSocket(client, (struct addrinfo *)ai);
+        OXLPalClientOpenSocket__(client, (struct addrinfo *)ai);
     }
     
     if (NULL != client->event.AfterPalResolveEvent) {
@@ -887,7 +916,7 @@ OXLPalClientConnectEvent_(uv_connect_t *connect, const int32_t status)
     
     if (status) { */ /* error condition */ /*
         OXLLogDebug("Error: %d. %s\n", status, uv_strerror(status));
-        OXLPalClientDisconnect_(client);
+        OXLPalClientDisconnect__(client);
     } else {
         */
         
@@ -902,8 +931,7 @@ OXLPalClientConnectEvent_(uv_connect_t *connect, const int32_t status)
 }
 */
 
-/* OXLCallback */
-void
+void /* OXLCallback */
 OXLPalAfterLogon_(void *sender, const void *data, const int32_t status)
 {
     OXLPalClient *client = (OXLPalClient *)sender;
@@ -917,11 +945,11 @@ OXLPalAfterLogon_(void *sender, const void *data, const int32_t status)
     OXLDestroyPalLogonMsg(logonMsg);
 }
 
-void
-OXLClientPalLogon_(OXLPalClient *client,
-                   const char *username,
-                   const char *wizpass,
-                   const int16_t roomId)
+static void
+OXLClientPalLogon__(OXLPalClient *client,
+                    const char *username,
+                    const char *wizpass,
+                    const int16_t roomId)
 {
     OXLPalLogonMsg *logonMsg = OXLCreatePalLogonMsg(username,
                                                     wizpass,
@@ -935,7 +963,7 @@ OXLClientPalLogon_(OXLPalClient *client,
     OXLDumpPalLogonMsg(logonMsg);
     OXLLogDebug("After DumpPalLogonMsg");
     
-    OXLPalClientSendAndDestroyMsg_(client, logonMsg, OXLPalClientLogonEvent_);
+    OXLPalClientSendAndDestroyMsg__(client, logonMsg, OXLPalClientLogonEvent_);
 }
 
 
@@ -946,7 +974,7 @@ OXLClientPalLogon_(OXLPalClient *client,
 void
 OXLPalClientDisconnect(OXLPalClient *client)
 {
-    OXLPalClientDisconnect_(client);
+    OXLPalClientDisconnect__(client);
 }
 
 void
@@ -975,6 +1003,13 @@ OXLPalClient *
 OXLCreatePalClientWithLoop(uv_loop_t *uv_loop)
 {
     OXLPalClient *client = OXLAlloc(sizeof(*client));
+    /*
+    client->userList = OXLCreateList();
+    client->roomList = OXLCreateList();
+     */
+    OXLInitList(&client->userList);
+    OXLInitList(&client->roomList);
+    
     OXLSetupPalClient(client);
     return client;
 }
@@ -1006,6 +1041,14 @@ OXLDestroyPalClient(OXLPalClient *client)
     /* uv_loop_close(client->loop); */
     /* free(client->loop); */
     OXLUnsetupPalClient(client);
+    
+    /*
+    OXLDestroyList(client->roomList);
+    OXLDestroyList(client->userList);
+     */
+    OXLListRemoveAll(&client->roomList);
+    OXLListRemoveAll(&client->userList);
+    
     OXLFree(client);
 }
 
@@ -1018,19 +1061,19 @@ OXLSetPalUsername(OXLPalClient *client, const char *username)
 void
 OXLPalClientSendAndRetainMsg(OXLPalClient *client, const void *msg, const OXLCallback callback)
 {
-    OXLPalClientSendAndRetainMsg_(client, msg, callback);
+    OXLPalClientSendAndRetainMsg__(client, msg, callback);
 }
 
 void
 OXLPalClientSendAndDestroyMsg(OXLPalClient *client, void *msg, const OXLCallback callback)
 {
-    OXLPalClientSendAndDestroyMsg_(client, msg, callback);
+    OXLPalClientSendAndDestroyMsg__(client, msg, callback);
 }
 
 void
 OXLPalClientHandshake(OXLPalClient *client, const ssize_t nread, const uv_buf_t buf)
 {
-    OXLPalClientHandshake_(client, nread, buf);
+    OXLPalClientHandshake__(client, nread, buf);
 }
 
 void
@@ -1078,7 +1121,7 @@ OXLPalClientSay(OXLPalClient *client, const char *plainText)
         return;
     }
     
-    OXLPalClientSendAndDestroyMsg_(client,
+    OXLPalClientSendAndDestroyMsg__(client,
                                    OXLCreatePalSayMsg(client, plainText),
                                    client->event.AfterPalXTalkEvent);
 }
@@ -1087,7 +1130,7 @@ static void
 OXLPalClientJoinRoom_(OXLPalClient *client, const uint16_t gotoRoomId)
 {
     uint32_t userId = 0; /* stub */
-    OXLPalClientSendAndDestroyMsg_(client, OXLCreatePalGotoRoomMsg(userId, gotoRoomId), client->event.AfterPalJoinRoomEvent);
+    OXLPalClientSendAndDestroyMsg__(client, OXLCreatePalGotoRoomMsg(userId, gotoRoomId), client->event.AfterPalJoinRoomEvent);
 }
 
 static void
@@ -1120,7 +1163,7 @@ OXLPalClientGetRoomList(OXLPalClient *client)
         return;
     }
     
-    OXLPalClientSendAndDestroyMsg_(client,
+    OXLPalClientSendAndDestroyMsg__(client,
                                    OXLCreatePalMsg(PAL_TX_REQUEST_ROOM_LIST_MSG, client->user.id),
                                     client->event.AfterPalRequestRoomListEvent);
     
@@ -1133,7 +1176,7 @@ OXLPalClientGetUserList(OXLPalClient *client)
         return;
     }
     
-    OXLPalClientSendAndDestroyMsg_(client,
+    OXLPalClientSendAndDestroyMsg__(client,
                                    OXLCreatePalMsg(PAL_TX_REQUEST_USER_LIST_MSG, client->user.id),
                                    client->event.AfterPalRequestUserListEvent);
 }

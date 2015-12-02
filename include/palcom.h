@@ -162,11 +162,94 @@
 #define             PAL_TX_AUTHRESPONSE_MSG 0x61757472
 #define                     PAL_TX_DRAW_MSG 0x64726177  /* draw */
 
+/******************************************************
+ ** ULCAPS ********************************************
+ ******************************************************/
+
+#define         PAL_LI_ULCAPS_ASSETS_PALACE 0x00000001
+#define            PAL_LI_ULCAPS_ASSETS_FTP 0x00000002
+#define           PAL_LI_ULCAPS_ASSETS_HTTP 0x00000004
+#define          PAL_LI_ULCAPS_ASSETS_OTHER 0x00000008
+#define          PAL_LI_ULCAPS_FILES_PALACE 0x00000010
+#define             PAL_LI_ULCAPS_FILES_FTP 0x00000020
+#define            PAL_LI_ULCAPS_FILES_HTTP 0x00000040
+#define           PAL_LI_ULCAPS_FILES_OTHER 0x00000080
+#define              PAL_LI_ULCAPS_EXTENDED 0x00000100
+
+/******************************************************
+ ** DLCAPS ********************************************
+ ******************************************************/
+
+#define         PAL_LI_DLCAPS_ASSETS_PALACE 0x00000001
+#define            PAL_LI_DLCAPS_ASSETS_FTP 0x00000002
+#define           PAL_LI_DLCAPS_ASSETS_HTTP 0x00000004
+#define          PAL_LI_DLCAPS_ASSETS_OTHER 0x00000008
+#define          PAL_LI_DLCAPS_FILES_PALACE 0x00000010
+#define             PAL_LI_DLCAPS_FILES_FTP 0x00000020
+#define            PAL_LI_DLCAPS_FILES_HTTP 0x00000040
+#define           PAL_LI_DLCAPS_FILES_OTHER 0x00000080
+#define   PAL_LI_DLCAPS_FILES_HTTP_EXTENDED 0x00000100
+#define              PAL_LI_DLCAPS_EXTENDED 0x00000200
+
+
+/******************************************************
+ ** 2DENGINECAPS **************************************
+ ******************************************************/
+
+#define           PAL_LI_2DENGINECAP_PALACE 0x00000001
+
+/******************************************************
+ ** 2DGRAPHCAPS ***************************************
+ ******************************************************/
+
+#define             PAL_LI_2DGRAPHCAP_GIF87 0x00000001
+#define            PAL_LI_2DGRAPHCAP_GIF89a 0x00000002
+#define               PAL_LI_2DGRAPHCAP_JPG 0x00000004
+#define              PAL_LI_2DGRAPHCAP_TIFF 0x00000008
+#define             PAL_LI_2DGRAPHCAP_TARGA 0x00000010
+#define               PAL_LI_2DGRAPHCAP_BMP 0x00000020
+#define               PAL_LI_2DGRAPHCAP_PCT 0x00000040
+
+/******************************************************
+ ** 3DGRAPHCAPS ***************************************
+ ******************************************************/
+
+#define            PAL_LI_3DENGINECAP_VRML1 0x00000001
+#define            PAL_LI_3DENGINECAP_VRML2 0x00000002
+
+/******************************************************
+ ** PAL HEADER FIELDS *********************************
+ ******************************************************/
+
 #define PAL_HEADER_FIELDS \
 /* public */ \
 uint32_t id; \
 uint32_t len; \
 uint32_t ref;
+
+/******************************************************
+ ** KILLED REASONS ************************************
+ ******************************************************/
+
+enum {
+    K_Unknown,
+    K_LoggedOff,
+    K_CommError,
+    K_Flood,
+    K_KilledByPlayer,
+    K_ServerDown,
+    K_Unresponsive,
+    K_KilledBySysop,
+    K_ServerFull,
+    K_InvalidSerialNumber,
+    K_DuplicateUser,
+    K_DeathPenaltyActive,
+    K_Banished,
+    K_BanishKill,
+    K_NoGuests,
+    K_DemoExpired,
+    K_Verbose
+};
 
 typedef struct OXLPalMsgStruct {
     PAL_HEADER_FIELDS

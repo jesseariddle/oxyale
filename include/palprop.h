@@ -10,7 +10,7 @@
 #define oxyale_palprop_h
 
 typedef struct OXLPalPropStruct {
-    /* stub */
+    
 } OXLPalProp;
 
 #endif

@@ -486,43 +486,67 @@ OXLListSize(OXLList *list)
 void
 OXLDestroyListItem(OXLListItem *listItem)
 {
-    if (listItem) {
-        if (listItem->data) {
+    if (listItem != NULL) {
+        if (listItem->data != NULL) {
             OXLFree(listItem->data);
         }
         OXLFree(listItem);
     }
 }
 
+void
+OXLInitListItem(OXLListItem *listItem, void *data)
+{
+    listItem->data = data;
+    listItem->next = NULL;
+}
+
 OXLListItem *
 OXLCreateListItem(void *data)
 {
     OXLListItem *li = OXLAlloc(sizeof(*li));
-    li->data = data;
+    OXLInitListItem(li, data);
     return li;
 }
 
 void
 OXLDestroyList(OXLList *list)
 {
-    /* OXLListItem *tmp; */
-    OXLListItem *li = list->head;
-    while (li->next) {
+    OXLListItem *nli, *li = list->head;
+    while (li) {
+        nli = li->next;
         OXLDestroyListItem(li);
-        li = li->next;
+        li = nli;
     }
+    OXLFree(list);
+}
+
+void
+OXLInitList(OXLList *list)
+{
+    list->head = NULL;
+    list->size = 0;
 }
 
 OXLList *
 OXLCreateList()
 {
-    return NULL;
+    OXLList *list = OXLAlloc(sizeof(OXLList));
+    OXLInitList(list);
+    return list;
 }
 
 void
 OXLListRemoveAll(OXLList *list)
 {
+    OXLListItem *nli, *li = list->head;
+    while (li != NULL) {
+        nli = li->next;
+        OXLDestroyListItem(li);
+        li = nli;
+    }
     
+    list->size = 0;
 }
 
 OXLListItem *
@@ -531,64 +555,94 @@ OXLListFirst(OXLList *list)
     return list->head;
 }
 
-void
-OXLListPrepend(OXLList *list, OXLListItem *item)
+OXLList *
+OXLCreateTailList(OXLList *list)
 {
-    OXLListItem *li = list->head;
-    item->next = li;
-    list->head = item;
+    OXLList *tailList = OXLCreateList();
+    tailList->head = list->head->next;
+    tailList->size = list->size - 1;
+    return tailList;
 }
 
 void
-OXLListInsert(OXLList *list, size_t index, OXLListItem *item)
+OXLListRemove(OXLList *list, size_t index)
 {
-    OXLListItem *li, *nli;
-    int32_t c = 0;
-
-    /*
-    if (list->size < index) {
-        return;
+    if (0 == index && list->head) {
+        OXLDestroyListItem(list->head);
+    } else if (0 < index && list->head) {
+        int32_t c = 0;
+        OXLListItem *pli = list->head;
+        OXLListItem *li = list->head;
+        while (c < index && li->next) {
+            ++c;
+            li = li->next;
+        }
+        OXLListItem *nli = li->next;
+        OXLDestroyListItem(li);
+        pli->next = nli;
     }
-     */
+    
+    list->size--;
+}
 
-    li = list->head;
-    while (c < index && li && li->next) {
-        li = li->next;
-        ++c;
+void
+OXLListInsert(OXLList *list, OXLListItem *listItem, size_t index)
+{
+    if (0 == index && !list->head) {
+        list->head = listItem;
+    } else if (0 < index && list->head) {
+        int32_t c = 0;
+        OXLListItem *li = list->head;
+        while (c < index && li->next) {
+            ++c;
+            li = li->next;
+        }
+        OXLListItem *nli = li->next;
+        li->next = listItem;
+        listItem->next = nli;
     }
-
-    /* tli->next = item->next; */
-    nli = li->next;
-    li->next = item;
-    item->next = nli;
+    
+    list->size++;
 }
 
 OXLListItem *
 OXLListGet(OXLList *list, size_t index)
 {
-    OXLListItem *li = list->head;
     size_t c = 0;
-    while (c < index && li && li->next) {
-        li = li->next;
+    OXLListItem *li = list->head;
+    while (c < index && li) {
         ++c;
+        li = li->next;
     }
-    
     return li;
 }
 
 void
-OXLListAppend(OXLList *list, OXLListItem *item)
+OXLListAdd(OXLList *list, OXLListItem *listItem)
 {
-    OXLListItem *li;
-    if (NULL != list && NULL != list->head) {
-        for (OXLListItem *li = list->head; NULL != li->next; li = li->next);
-        li->data = item->data;
-        li->next = item;
+    if (!list->head) {
+        list->head = listItem;
+    } else {
+        OXLListItem *li = list->head;
+        while (li->next) {
+            li = li->next;
+        }
+        OXLListItem *nli = li->next;
+        li->next = listItem;
+        listItem->next = nli;
     }
 }
 
 void
-OXLListAppendList(OXLList *list, OXLList *listToAppend)
+OXLListAddList(OXLList *list, OXLList *listToAdd)
 {
-    
+    if (!list->head) {
+        list->head = listToAdd->head;
+    } else {
+        OXLListItem *li = list->head;
+        while (li->next) {
+            li = li->next;
+        }
+        li->next = listToAdd->head;
+    }
 }
