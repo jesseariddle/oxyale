@@ -25,7 +25,6 @@
 #include "palreg.h"
 #include "palcrypto.h"
 #include "pallogon.h"
-#include "paljoinroom.h"
 #include "palclient.h"
 
 #ifndef __cplusplus
